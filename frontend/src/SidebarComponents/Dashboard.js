@@ -208,7 +208,54 @@ const Dashboard = () => {
         footer={<Button onClick={() => setIsModalOpen(false)}>OK</Button>}
         centered
       >
-        <Upload.Dragger beforeUpload={() => false} maxCount={1}>
+        <Upload.Dragger
+          name="file"
+          multiple={false}
+          // showUploadList={false}
+          customRequest={async ({ file, onSuccess, onError }) => {
+            try {
+              const BASE_URL = process.env.REACT_APP_AI_EXTRACT;
+
+              const formData = new FormData();
+              formData.append("file", file);
+
+              // 🔥 Call extract API
+              const response = await fetch(
+                `${BASE_URL}/api/extract_document`,
+                {
+                  method: "POST",
+                  body: formData,
+                }
+              );
+
+              if (!response.ok) {
+                throw new Error(`Upload failed: ${response.status}`);
+              }
+
+              const extractedResult = await response.json();
+
+              message.success("File uploaded and processed successfully");
+              setIsModalOpen(false);
+
+              /**
+               * ✅ IMPORTANT PART
+               * We pass the SAME structure Sublob2 already expects
+               */
+              navigate("/document-processing", {
+                state: {
+                  submissionId: extractedResult.submission_id,
+                  apiData: [extractedResult], // 👈 wrap in array
+                },
+              });
+
+              onSuccess();
+            } catch (err) {
+              console.error("Upload failed:", err);
+              message.error("File upload failed");
+              onError(err);
+            }
+          }}
+        >
           <p className="ant-upload-drag-icon">
             <UploadOutlined />
           </p>

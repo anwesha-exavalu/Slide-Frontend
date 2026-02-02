@@ -33,10 +33,10 @@ const MyMenu = ({ collapsed }) => {
       mode="inline"
       selectedKeys={[pathToKey[location.pathname] || '1']}
     >
-      <Menu.Item key="1" icon={<MailOutlined/>} title={"Dashboard"}>
+      <Menu.Item key="1" icon={<FileTextOutlined />} title={"Dashboard"}>
         {!collapsed ? <Link to="/dashboard" style={{ textDecoration: 'none' }}>IDP</Link> : <Link to="/dashboard" style={{ textDecoration: 'none' }}/>}
       </Menu.Item>
-      <Menu.Item key="2" icon={<FileTextOutlined />} title={"Email"}>
+      <Menu.Item key="2" icon={<MailOutlined/>} title={"Email"}>
         {!collapsed ? <Link to="/email" style={{ textDecoration: 'none' }}>Email</Link> : <Link to="/email" style={{ textDecoration: 'none' }}/>}
       </Menu.Item>
     </Menu>
