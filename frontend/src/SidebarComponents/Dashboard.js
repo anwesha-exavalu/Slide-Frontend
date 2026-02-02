@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   Table,
   Button,
-  Space,
-  Input,
   Row,
   Col,
   Modal,
@@ -12,11 +10,9 @@ import {
   message,
 } from "antd";
 import {
-  SearchOutlined,
   UploadOutlined,
   InfoCircleOutlined,
 } from "@ant-design/icons";
-import Highlighter from "react-highlight-words";
 import "./Dashboard.css";
 import "./Table.css";
 import { TableContainer } from "../styles/components/TableComponent";
@@ -61,8 +57,12 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // JSON modal state
+  const [jsonModalOpen, setJsonModalOpen] = useState(false);
+  const [selectedJson, setSelectedJson] = useState(null);
+
   /* =========================
-     API CALL (DIRECT)
+     API CALL (UNCHANGED)
   ========================= */
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -92,23 +92,27 @@ const Dashboard = () => {
   }, []);
 
   /* =========================
-     Table Data
+     Table Data (FIXED)
   ========================= */
   const tableData = apiData.map((item) => ({
     key: item.submission_id,
     submission: item.submission_id?.slice(0, 8),
-    submittedBy:
-      item.llm_response?.metadata?.owner_name || "—",
+    submittedBy: item.llm_response?.metadata?.owner_name || "—",
     date: item.last_modified
       ? new Date(item.last_modified).toLocaleDateString()
       : "—",
-    source: "PDF",
-    json: "Available",
+
+    // ✅ presigned S3 URL
+    source: item.pdf_s3_uri,
+
+    // ✅ full LLM response
+    json: item.llm_response,
+
     output: item.submission_id,
   }));
 
   /* =========================
-     Columns
+     Columns (FIXED)
   ========================= */
   const columns = [
     {
@@ -130,17 +134,39 @@ const Dashboard = () => {
       title: "Source",
       dataIndex: "source",
       key: "source",
+      render: (url) =>
+        url ? (
+          <a href={url} target="_blank" rel="noopener noreferrer">
+            View PDF
+          </a>
+        ) : (
+          "—"
+        ),
     },
     {
-      title: "Json",
+      title: "JSON",
       dataIndex: "json",
       key: "json",
+      render: (json) =>
+        json ? (
+          <Button
+            type="link"
+            onClick={() => {
+              setSelectedJson(json);
+              setJsonModalOpen(true);
+            }}
+          >
+            View
+          </Button>
+        ) : (
+          "—"
+        ),
     },
     {
       title: "Output",
       dataIndex: "output",
       key: "output",
-      align: "center",
+      // align: "center",
       render: (submissionId) => (
         <InfoCircleOutlined
           style={{ fontSize: 18, color: "#1677ff", cursor: "pointer" }}
@@ -174,6 +200,7 @@ const Dashboard = () => {
         </Col>
       </Row>
 
+      {/* Upload Modal */}
       <Modal
         title="Upload File"
         open={isModalOpen}
@@ -188,6 +215,43 @@ const Dashboard = () => {
           <p>Click or Drag File to Upload</p>
         </Upload.Dragger>
       </Modal>
+
+      {/* JSON Viewer Modal */}
+      <Modal
+        title="LLM Response"
+        open={jsonModalOpen}
+        onCancel={() => setJsonModalOpen(false)}
+        footer={null}
+        width={900}
+      >
+        {/* Copy Button */}
+        <div style={{ textAlign: "right", marginBottom: 8 }}>
+          <Button
+            size="small"
+            onClick={() => {
+              navigator.clipboard.writeText(
+                JSON.stringify(selectedJson, null, 2)
+              );
+              message.success("JSON copied to clipboard");
+            }}
+          >
+            Copy JSON
+          </Button>
+        </div>
+
+        <pre
+          style={{
+            maxHeight: 500,
+            overflow: "auto",
+            background: "#f5f5f5",
+            padding: 16,
+            borderRadius: 6,
+          }}
+        >
+          {JSON.stringify(selectedJson, null, 2)}
+        </pre>
+      </Modal>
+
     </Container>
   );
 };
