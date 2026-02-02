@@ -1,0 +1,180 @@
+.maincontainer{
+
+    flex-direction: column;
+    width: 100%;
+    justify-content: center;
+    margin: 30px auto;
+    padding: 0 20px; /* Add padding for better spacing on smaller screens */
+    box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  }
+  
+  .policyForm {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding: 25px; /* Increased padding for better spacing */
+    background-color: #fff;
+  
+    margin-top: 2px;
+    width: 100%; /* Ensure full width of the screen */
+    box-sizing: border-box; /* Include padding in the width */
+  }
+  .customlable {
+    font-size: 18px;
+  }
+  
+  
+  .formColumns {
+    display: flex;
+    gap: 50px;
+    width: 100%;
+  }
+  
+  .formColumn {
+    flex: 1;
+  }
+  
+  .formSection {
+    margin: 0;
+  }
+  
+  .sectionName {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 10px 0;
+    color: var(--Global-Neutral-Grey-1100, #2d2b32);
+  }
+  
+  /* Left Column Styles - Gray Background */
+  .leftColumn {
+    background-color: white;
+    flex: 1;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Right Column Styles - White Background */
+  .rightColumn {
+    background-color: #fff;
+    flex: 1;
+    padding: 20px;
+    
+  }
+  
+  .sectionTitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--Global-Neutral-Grey-1100, #2d2b32);
+    margin-bottom: 16px;
+  }
+  
+  .sectionDescription {
+    font-size: 14px; /* Slightly increased font size for better readability */
+    color: var(--Global-Neutral-Grey-700, #7a7a7a);
+    margin-bottom: 15px;
+  }
+  
+  .formRow {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .formGroup {
+    display: flex; /* Flexbox for label and input side by side */
+    align-items: center; /* Align label and input vertically */
+    gap: 2px; /* Add gap between label and input */
+    flex: 1;
+  }
+  
+  .policylabel {
+    font-size: 14px;
+    color: var(--Global-Neutral-Grey-800, #373638);
+    font-weight: 500;
+    width: 30%; /* Ensure labels take 30% of the width */
+    text-align: left;
+  }
+
+  .orgtypelabel{
+    font-size: 15px !important;
+    font-family: "Inter", sans-serif !important; 
+  }
+  
+  .policyinput {
+    margin-left: 0px;
+    width: 70%; /* Input takes 70% of the row */
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid #ccc; /* Softer border color */
+    background-color: var(--Global-Base-White, #fff);
+    padding: 0 10px;
+    font-size: 14px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .policyinput:focus {
+    border-color: #4744e5; /* Highlight input on focus */
+    
+    outline: none;
+  }
+  
+  .submitButton {
+    align-self: flex-end;
+    background-color: #4744e5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .submitButton:hover {
+    background-color: #3475ee;
+  }
+
+  .widgetBox {
+    background-color: #fff;
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 2px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 0.3rem;
+    border:  rgb(243, 240, 240);
+    width: "80rem"
+  }
+  
+  .widgetTitle {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e8e8e8;
+    padding-bottom: 5px;
+  }
+  
+  .widgetBox .ant-row .ant-col {
+    margin-bottom: 12px;
+  }
+  
+  @media (max-width: 991px) {
+    .formColumns {
+      flex-direction: column;
+      gap: 30px; /* Adjust gap between sections for smaller screens */
+    }
+  
+    .submitButton {
+      align-self: stretch;
+    }
+  }
+  
+  .required:after {
+    content: "*";
+    color: red;
+  }
+  
+
+  

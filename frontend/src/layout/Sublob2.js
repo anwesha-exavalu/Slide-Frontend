@@ -1,0 +1,93 @@
+import React from "react";
+import { useLocation } from "react-router-dom";
+import { Table, List, Card, Tag, Row, Col } from "antd";
+
+const Sublob2 = () => {
+  const { state } = useLocation();
+  const { submissionId, apiData } = state || {};
+
+  const submission = apiData?.find(
+    (item) => item.submission_id === submissionId
+  );
+
+  if (!submission) {
+    return <div>No data available</div>;
+  }
+
+  const { metadata, fields } = submission.llm_response;
+
+  /* =========================
+     Metadata
+  ========================= */
+  const metaColumns = [
+    { title: "Key", dataIndex: "key", width: "30%" },
+    { title: "Value", dataIndex: "value" },
+  ];
+
+  const metaDataSource = Object.entries(metadata).map(
+    ([key, value], index) => ({
+      key: index,
+      key: key.replace(/_/g, " ").toUpperCase(),
+      value,
+    })
+  );
+
+  /* =========================
+     Fields
+  ========================= */
+  const fieldList = Object.entries(fields).map(
+    ([fieldName, fieldData], index) => ({
+      id: index,
+      fieldName,
+      ...fieldData,
+    })
+  );
+
+  return (
+    <div className="flex flex-col w-full">
+      <Card
+        title="Document Metadata"
+        headStyle={{ backgroundColor: "#1677ff", color: "#fff" }}
+        style={{ marginBottom: 16 }}
+      >
+        <Table
+          columns={metaColumns}
+          dataSource={metaDataSource}
+          pagination={false}
+          bordered
+          size="small"
+        />
+      </Card>
+
+      <Card title="Extracted Fields">
+        <List
+          itemLayout="vertical"
+          dataSource={fieldList}
+          renderItem={(item) => (
+            <List.Item>
+              <Row gutter={[16, 8]}>
+                <Col span={24}>
+                  <strong>{item.fieldName}</strong>
+                </Col>
+
+                <Col span={24}>{item.value}</Col>
+
+                <Col span={24}>
+                  <Tag color="blue">
+                    Confidence:{" "}
+                    {Math.round(Number(item.confidence_score) * 100)}%
+                  </Tag>
+                  <Tag>Type: {item.type}</Tag>
+                  <Tag>Format: {item.format}</Tag>
+                  <Tag>Page: {item.page}</Tag>
+                </Col>
+              </Row>
+            </List.Item>
+          )}
+        />
+      </Card>
+    </div>
+  );
+};
+
+export default Sublob2;

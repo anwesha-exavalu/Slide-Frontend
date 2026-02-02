@@ -1,0 +1,87 @@
+/* General container styles */
+.content {
+   
+  padding: 20px;
+  
+  width: 100%;
+}
+
+h1 {
+    text-align: left;
+    font-size: 28px;
+    color: #333;
+  
+    font-weight: 600;
+}
+.submission-card-container {
+  
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+    
+  }
+
+.submissioncard{
+    background-color: whitesmoke;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    border-top: 2px solid #0e25ec;
+    cursor: pointer;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+
+}
+.submissioncard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+  }
+  .submissioncard:active {
+    transform: translateY(4px);
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3);
+  }
+  .submissioncard h3 {
+    margin: 0;
+    font-size: 1.5em;
+    color: #051df4f8;
+  }
+  .submissioncard p {
+    font-size: 1.2em;
+    color: black;
+  }
+
+
+/* Input and form styles */
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 6px; /* Softer corners */
+    font-size: 16px;
+    outline: none;
+}
+
+input:focus, select:focus {
+    border-color: #4698f6; /* Consistent focus border */
+}
+
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .content {
+        margin-left: 0;
+        padding: 15px;
+    }
+
+    .submission-card-container {
+        flex-direction: column; /* Stack cards vertically on small screens */
+        align-items: center;
+    }
+
+    .modal-content {
+        width: 90%;
+    }
+}

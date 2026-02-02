@@ -1,0 +1,39 @@
+.container {
+    width: 70%;
+    margin: 0 auto;
+    padding: 20px;
+}
+h1 {
+    text-align: center;
+}
+
+.status-pass {
+    color: green;
+    font-weight: bold;
+    font-size: larger;
+   
+}
+.status-fail {
+    color: red;
+    font-weight: bold;
+    font-size:larger ;
+}
+.criteria {
+    font-weight: bold;
+    background-color: #f9f9f9;
+    text-align: left;
+}
+.check {
+    padding-left: 30px;
+    text-align: left;
+    
+}
+
+
+.actions {
+    display: flex;
+    
+    margin-top: 50px;
+    
+   
+}

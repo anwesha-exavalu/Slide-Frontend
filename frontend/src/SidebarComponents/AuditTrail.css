@@ -1,0 +1,42 @@
+.content {
+  margin-right:250px ;
+
+  justify-content: left;
+  margin-left: 50 px;
+ 
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+
+.button-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+button {
+  background-color: #1d30e4;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  margin: auto;
+  height: 40px;
+  width: 100px;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #cad9f6;
+  opacity: 0.8;
+}
+
+.title {
+  text-align: center;
+  color:white;
+
+}

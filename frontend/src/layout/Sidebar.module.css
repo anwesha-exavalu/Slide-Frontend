@@ -1,0 +1,183 @@
+/* Sidebar Styling */
+.sidebar {
+  width: 16%;
+  background-color: #204fc2;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: -24%; /* Initially hidden off-screen */
+  top: 0;
+  height: 100%;
+  transition: left 0.3s ease;
+  z-index: 1000;
+}
+
+/* When Sidebar is Open */
+.sidebar.open {
+  left: 0; /* Sidebar slides in when open */
+}
+
+/* Sidebar Header */
+.sidebarHeader {
+  text-align: center;
+}
+
+.teamName {
+  font: 700 25px/0.8 Inter, sans-serif;
+  letter-spacing: -0.05px;
+}
+
+.teamHandle {
+  font: 400 14px Inter, sans-serif;
+  letter-spacing: 8px;
+  margin-top: 8px;
+}
+
+/* Account Details Section */
+.accountDetails {
+  background-color: #2457d3;
+  border-bottom: 1px solid #4575ed;
+  padding: 17px 42px;
+  margin-top: 23px;
+  text-align: center;
+}
+
+.accountLabel {
+  color: #8daeff;
+  font-size: 11px;
+  letter-spacing: 0.88px;
+}
+
+.accountAvatar {
+  width: 92px;
+  margin-top: 16px;
+}
+
+.accountName {
+  font-size: 18px;
+  letter-spacing: -0.54px;
+  margin-top: 16px;
+}
+
+.accountAddress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.18px;
+  line-height: 2;
+  margin-top: 7px;
+}
+
+.addressIcon {
+  width: 24px;
+}
+
+/* Sidebar Navigation */
+.sidebarNav {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 0 0 54px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px;
+  border: none;
+  background: none;
+  color: #fff;
+  font: 500 14px/1 Inter, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.navItem.active {
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.navIcon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Document Preview Section */
+.documentPreview {
+  background-color: #23335a;
+  border-radius: 7px 7px 0 0;
+  padding: 15px;
+  margin-top: 10px;
+  font: 400 13px/24px Inter, -apple-system, Roboto, Helvetica, sans-serif;
+  text-align: center;
+}
+
+/* Media Queries for Smaller Screens */
+@media (max-width: 991px) {
+  .sidebar {
+      width: 80%;
+      left: -80%; /* Adjust off-screen position for smaller screens */
+  }
+
+  .accountDetails,
+  .sidebarNav {
+      padding-left: 20px;
+      padding-right: 20px;
+  }
+}
+
+/* Hamburger Button */
+.hamburgerButton {
+  font-size: 24px;
+  cursor: pointer;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1100;
+  background: none;
+  border: none;
+  color: black;
+}
+
+/* Close Button in Sidebar */
+.closeButton {
+  font-size: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: white;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+/* Main content that should shift when sidebar is opened */
+.mainContent {
+  transition: transform 0.3s ease;
+}
+
+/* When the sidebar is open, shift the content to the right */
+.mainContent.shifted {
+  transform: translateX(24%);
+}
+
+/* Overlay for Sidebar */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  cursor: pointer;
+  display: none; /* Hidden initially */
+}
+
+.overlay.show {
+  display: block; /* Show when sidebar is active */
+}

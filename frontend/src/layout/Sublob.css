@@ -1,0 +1,73 @@
+.lobs {
+  flex-direction: column;
+  display: flex;
+
+  align-items: center;
+  padding: 20px;
+  background-color: #f9f9f9;
+  flex-wrap: wrap; /* Ensures the buttons are displayed in a single line */
+  width: 100vw; /* Full width of the viewport */
+  /* Apply 10px left margin */
+  box-sizing: border-box; /* Include padding/margin in element's width */
+  position: relative;
+}
+
+.sublob {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row; /* Ensure items are displayed in a row */
+  justify-content: center; /* Center sub-LOB items horizontally */
+  /*align-items: center; Center sub-LOB items vertically */
+
+  width: 100%; /* Ensure the sublob container takes full width */
+  
+
+}
+
+.sublob-item {
+  padding: 10px 0px; /* Adjusted padding for better centering */
+  text-align: center;
+  border-bottom: 2px solid rgb(31, 80, 213);
+  border-radius: 5px;
+  background-color: #fff;
+  color: #000;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center; /* Center text horizontally */
+  /* align-items: center; Center text vertically */
+  height: 40px;
+  width: 100px;
+
+  
+}
+
+.sublob-item:focus{
+  box-shadow: 5px 5px 12px rgba(0, 0, 0, 0.2), -5px -5px 12px rgba(255, 255, 255, 0.9);
+}
+
+.sublob-item.active {
+  background-color: #2d67da; /* Active state: blue */
+  color: #fff;
+  border-color: transparent;
+}
+
+.sublob-item:hover {
+  background-color: #e0e0e0;
+}
+
+.sublob-item i {
+  margin-right: 8px;
+}
+
+.sublob-item.active:hover {
+  background-color: #003bb3;
+}
+
+@media (min-width: 768px) {
+  .sublob-container {
+    flex-wrap: nowrap; /* Prevent wrapping on larger screens */
+  }
+}

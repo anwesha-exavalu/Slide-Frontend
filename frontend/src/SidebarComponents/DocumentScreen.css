@@ -1,0 +1,78 @@
+
+  
+ 
+  
+  .submission-info {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+  
+  .submission-info span {
+    font-weight: bold;
+  }
+  
+  .document-group {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    padding: 15px;
+    background-color: #f9f9f9;
+  }
+  
+  .document-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .document-header .title {
+    color: #333;
+  }
+  
+  .document-header .toggle-btn {
+    font-size: 18px;
+    color: #555;
+    cursor: pointer;
+  }
+  
+  .document-body {
+    margin-top: 10px;
+  }
+  
+  .component {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #fff;
+  }
+  
+  .component-title {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .component-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+  }
+  
+  .component-info .type {
+    background-color: #f2f2f2;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: #555;
+    font-size: 12px;
+  }
+  
+  .component-info .date {
+    font-size: 12px;
+    color: #888;
+  }
+  

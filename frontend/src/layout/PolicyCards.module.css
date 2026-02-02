@@ -1,0 +1,59 @@
+/* .policyCards{
+  margin-right: 26px;
+} */
+
+.policyCard::before {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.05);
+  filter: blur(5px);
+  z-index: -1;
+  transition: opacity 0.3s ease;
+  opacity: 1;
+}
+
+.policyCard:hover::before {
+  opacity: 0.8;
+}
+
+.policyCard:hover {
+  transform: translateY(-8px); /* More dynamic hover movement */
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.15), 
+              0 12px 12px rgba(0, 0, 0, 0.07); /* Enhanced shadow on hover */
+}
+
+
+
+.policyIcon {
+  width: 50px;
+  height: 50px;
+  margin-left: -10px;
+  transition: transform 0.3s ease;
+}
+
+.policyCard:hover .policyIcon {
+  transform: rotateZ(8deg); /* Adds a slight rotation to the icon on hover */
+}
+
+.policyName {
+  color: var(--Global-Neutral-Grey-1300, #0a090b);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.18px;
+  margin: 0;
+}
+
+@media (max-width: 991px) {
+  .policyCards {
+      margin-right: 2px;
+  }
+
+  .policyCard {
+      padding: 20px;
+  }
+}

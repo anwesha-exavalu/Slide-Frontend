@@ -1,0 +1,46 @@
+.maincontainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  justify-content: center;
+  margin: 30px 0; /* Remove auto margin that was causing centering */
+  padding: 0 20px;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  background-color: white;
+}
+
+.blue-header {
+  background-color: #5d9de2 !important;
+  color: white !important;
+}
+
+/* Table styling */
+table {
+  width: 100%; /* Ensure table takes full width */
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+/* Keep the rest of your existing CSS styles */
+tfoot td {
+  padding: 10px;
+  border: 1px solid #ccc;
+  text-align: left;
+}
+
+tfoot input[readonly] {
+  width: 120px;
+  padding: 5px;
+}
+
+.empty-row {
+  text-align: center;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+.checkbox {
+  height: 15px;
+  width: 15px;
+}

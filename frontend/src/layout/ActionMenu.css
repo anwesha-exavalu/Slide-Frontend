@@ -1,0 +1,57 @@
+.dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .menu-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  /* Position the "Action Menu" text below the icon */
+  .action-menu-text {
+    font-size: 14px;
+    color: #000;
+    font-weight: bold;
+    position: absolute;
+    top: 50%; /* Position it below the icon */
+    left: 50%; /* Align center horizontally */
+    transform: translateX(-50%); /* Centering */
+    white-space: nowrap;
+    margin-top: 8px; /* Add a bit of space between the icon and text */
+  }
+  
+  .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 40px; /* Adjust based on layout */
+    right: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    min-width: 160px;
+    padding: 0;
+  }
+  
+  .dropdown .dropdown-menu {
+    display: block;
+  }
+  
+  .dropdown-menu li {
+    padding: 12px 16px;
+    cursor: pointer;
+    list-style: none;
+    border-bottom: 1px solid #f1f1f1;
+  }
+  
+  .dropdown-menu li:last-child {
+    border-bottom: none;
+  }
+  
+  .dropdown-menu li:hover {
+    background-color: #f1f1f1;
+  }
+  

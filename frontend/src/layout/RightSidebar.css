@@ -1,0 +1,64 @@
+/* Styling for the sidebar */
+.sidebar {
+  width: 200px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  border-color: 3px solid #204fc2;
+  box-shadow: 0 2px 8px  #204fc2;
+  margin: 20px;
+  height: 100%;
+  
+  text-align: center;
+  
+}
+
+/* Styling for the links */
+.sidebar-links a {
+  display: block;
+  color: #204fc2;
+  text-decoration: none;
+  margin: 10px 0;
+}
+
+.sidebar-links a:hover {
+  text-decoration: underline;
+}
+.sidebar-header {
+  font-size: 1.5rem; /* Adjust title size for smaller screens */
+  color: #204fc2;
+ font-weight: 600;
+ align-items: center;
+ text-decoration: underline;
+ margin-left: 12px;
+ 
+
+ 
+  
+}
+.sidebar-headerai {
+  font-size: 1.5rem; /* Adjust title size for smaller screens */
+  color: #204fc2;
+ font-weight: 600;
+ align-items: center;
+ text-decoration: underline;
+ margin-left: 15px;
+ margin-bottom: 30px;
+ 
+  
+}
+
+/* For smaller screens (Mobile) */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%; /* Take full width */
+    margin: 10px 0; /* Adjust margin for mobile */
+  }
+
+
+
+  .sidebar-links a {
+    font-size: 1rem; /* Adjust link size */
+    margin: 5px 0; /* Less margin between links */
+  }
+}

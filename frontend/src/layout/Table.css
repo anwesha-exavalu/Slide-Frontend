@@ -1,0 +1,45 @@
+table {
+    background-color: #fff;
+    border-radius: 8px;
+    table-layout: fixed;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    border-collapse: collapse; /* Use collapse to combine borders */
+    margin-top: 20px;
+    overflow: hidden; /* Ensures the table corners are rounded */
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd; /* Ensure both vertical and horizontal borders */
+}
+
+th {
+    background-color: #5d9de2; /* Blue background for header */
+    color: white;
+    padding: 12px;
+}
+
+th:first-child {
+    border-top-left-radius: 8px;
+}
+
+th:last-child {
+    border-top-right-radius: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #f9fafb; /* Light background for even rows */
+}
+
+tr:hover {
+    background-color: #edf2f7; /* Light hover effect */
+}
+
+
+
+/* Apply vertical lines between the header columns */
+th + th, td + td {
+    border-left: 1px solid #ddd; /* Add a vertical line between columns */
+}

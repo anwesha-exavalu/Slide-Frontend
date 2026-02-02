@@ -1,0 +1,44 @@
+.score-title {
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 10px;
+    background-color: #658ef5; /* Background color */
+    color: black;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    padding: 2px 20px;                           
+    box-sizing: border-box;      
+    text-align: center; 
+    width: 120px; 
+    margin-top: 30px;
+    
+}
+
+    
+    .circle {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: white; /* White center */
+     /* Blue border */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 10px;
+    
+    margin-bottom: 20px;
+    }
+    
+    .circle.hidden {
+    display: none;
+    }
+    
+    .percent {
+    position: absolute;
+    font-size: 22px;
+    font-weight: bold;
+    color: black; /* Blue text */
+    }
+ 

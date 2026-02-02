@@ -1,0 +1,105 @@
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  justify-content: center;
+  margin: 30px auto;
+  padding: 0 20px; /* Add padding for better spacing on smaller screens */
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Side-by-side container for UW Questions and Decision sections */
+.side-by-side-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+/* UW Questions section */
+.uw-questions-section {
+  flex: 1;
+  margin-right: 20px;
+}
+
+/* Decision section */
+.decision-section {
+  flex: 1;
+}
+
+/* UW table headers */
+.table-header {
+  font-size: 15px;
+  width: 200px;
+  background-color:  #5d9de2;
+  color: white;
+  font-weight: 500;
+}
+
+/* Decision header alignment */
+.decision-header {
+  text-align: center; /* Center-align the header */
+}
+
+/* Container for decision buttons and notes */
+.decision-container {
+  margin-top: 40px; /* Adjust top margin */
+}
+
+/*
+.buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  margin-bottom: 20px;
+  
+}
+
+
+.action-button {
+  background-color: #2196F3;
+  padding: 15px 70px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  color: white;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  padding-right: 115px;
+}*/
+
+/* Notes textarea */
+.notes {
+  width: 100%;
+  height: 120px; /* Adjusted height */
+  padding: 10px;
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+ 
+}
+
+/* Optional: Vertical line if needed */
+.vertical-line {
+  height: auto;
+  width: 2px;
+  background-color: rgb(2, 2, 130);
+  margin: 0 20px;
+}
+
+.override-decision-container {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+  background-color: #fff;
+}
+
+.override-decision-container h4 {
+  margin-bottom: 10px;
+}
+
+
+.decision-container {
+  margin-top: 10px;
+}
