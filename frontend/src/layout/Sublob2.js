@@ -20,8 +20,8 @@ const Sublob2 = () => {
      Metadata
   ========================= */
   const metaColumns = [
-    { title: "Key", dataIndex: "key", width: "30%" },
-    { title: "Value", dataIndex: "value" },
+    { title: "", dataIndex: "key", width: "30%" },
+    { title: "", dataIndex: "value" },
   ];
 
   const metaDataSource = Object.entries(metadata).map(
@@ -47,7 +47,10 @@ const Sublob2 = () => {
     <div className="flex flex-col w-full">
       <Card
         title="Document Metadata"
-        headStyle={{ backgroundColor: "#1677ff", color: "#fff" }}
+        headStyle={{
+          backgroundColor: "#5d9de2 ",
+          color: "#fff",
+        }}
         style={{ marginBottom: 16 }}
       >
         <Table
@@ -59,7 +62,10 @@ const Sublob2 = () => {
         />
       </Card>
 
-      <Card title="Extracted Fields">
+      <Card title="Extracted Fields" headStyle={{
+        backgroundColor: "#5d9de2 ",
+        color: "#fff",
+      }}>
         <List
           itemLayout="vertical"
           dataSource={fieldList}
@@ -70,15 +76,16 @@ const Sublob2 = () => {
                   <strong>{item.fieldName}</strong>
                 </Col>
 
-                <Col span={24}>{item.value}</Col>
+                <Col span={14}>{item.value}</Col>
 
-                <Col span={24}>
-                  <Tag color="blue">
+                <Col span={10} style={{ textAlign: "right" }}>
+                  <Tag color={item.confidence_score > 0.8 ? "green" : item.confidence_score > 0.5 ? "orange" : "red"}>
                     Confidence:{" "}
                     {Math.round(Number(item.confidence_score) * 100)}%
                   </Tag>
-                  <Tag>Type: {item.type}</Tag>
-                  <Tag>Format: {item.format}</Tag>
+                  {/* <Tag>Type: {item.type}</Tag> */}
+                  {/* <Tag>Format: {item.format}</Tag> */}
+                  {/* {item.source && <Tag>Source: {item.source}</Tag>} */}
                   <Tag>Page: {item.page}</Tag>
                 </Col>
               </Row>
