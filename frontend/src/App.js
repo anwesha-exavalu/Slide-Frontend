@@ -15,6 +15,7 @@ import AuditTrail from './SidebarComponents/AuditTrail';
 import AccountInfo from './SidebarComponents/AccountInfo';
 import AccountDashboard from './SidebarComponents/AccountDashboard';
 import Login from './layout/Login';
+import EmailDashboard from './SidebarComponents/EmailDashboard';
 
 const { Sider, Content, Footer } = Layout;
 
@@ -99,7 +100,7 @@ const AppLayout = () => {
           <Routes>
             <Route exact path="/" element={<Login />} />
             <Route path="dashboard" element={<Dashboard />} />
-             <Route path="email" element={<>List of Emails</>} />
+             <Route path="email" element={<EmailDashboard/>} />
             <Route path="document-processing" element={<Sublob2 />} />
             <Route path="audit-trail" element={<AuditTrail />} />
             <Route path="accountdashboard" element={<AccountDashboard />} />

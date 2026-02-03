@@ -18,14 +18,14 @@ export const TableContainer = styled.div`
     tr th {
       background-color: ${({ theme }) =>
         themes[theme].dashboardQuickLinkItemsBg};
-      font-family: "Inter', sans-serif";
-      font-size: 12px;
+     
+      font-size: 14px;
       font-weight: 600;
       line-height: 18px;
       color: ${({ theme }) => themes[theme].stepLabel};
     }
     tr td {
-      font-family: "Inter', sans-serif";
+   
       font-size: 14px;
       font-weight: 400;
       line-height: 20px;

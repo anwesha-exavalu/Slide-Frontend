@@ -64,32 +64,40 @@ const Dashboard = () => {
   /* =========================
      API CALL (UNCHANGED)
   ========================= */
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        setLoading(true);
+  const hasFetchedRef = useRef(false);
 
-        const BASE_URL = process.env.REACT_APP_AI_EXTRACT;
-        const response = await fetch(
-          `${BASE_URL}/api/get_extracted_documents`
-        );
+useEffect(() => {
+  if (hasFetchedRef.current) return; 
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
+  const fetchDocuments = async () => {
+    try {
+      setLoading(true);
 
-        const result = await response.json();
-        setApiData(result.submission_list || []);
-      } catch (error) {
-        console.error("API fetch failed:", error);
-        message.error("Failed to fetch data");
-      } finally {
-        setLoading(false);
+      const BASE_URL = process.env.REACT_APP_AI_EXTRACT;
+      const response = await fetch(
+        `${BASE_URL}/api/get_extracted_documents`
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
-    };
 
-    fetchDocuments();
-  }, []);
+      const result = await response.json();
+      setApiData(result.submission_list || []);
+
+      hasFetchedRef.current = true; 
+    } catch (error) {
+      console.error("API fetch failed:", error);
+      message.error("Failed to fetch data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchDocuments();
+}, []);
+
+
 
   /* =========================
      Table Data (FIXED)
@@ -98,6 +106,7 @@ const Dashboard = () => {
     key: item.submission_id,
     submission: item.submission_id?.slice(0, 8),
     submittedBy: item.llm_response?.metadata?.owner_name || "—",
+    document: item.llm_response?.metadata?.document_name || "—",
     date: item.last_modified
       ? new Date(item.last_modified).toLocaleDateString()
       : "—",
@@ -116,7 +125,7 @@ const Dashboard = () => {
   ========================= */
   const columns = [
     {
-      title: "Submission",
+      title: "Submission ID",
       dataIndex: "submission",
       key: "submission",
     },
@@ -124,6 +133,13 @@ const Dashboard = () => {
       title: "Submitted by",
       dataIndex: "submittedBy",
       key: "submittedBy",
+      width: 100
+    },
+    {
+      title: "Document",
+      dataIndex: "document",
+      key: "document",
+      width: 250,
     },
     {
       title: "Date",
@@ -134,6 +150,7 @@ const Dashboard = () => {
       title: "Source",
       dataIndex: "source",
       key: "source",
+      width: 100,
       render: (url) =>
         url ? (
           <a href={url} target="_blank" rel="noopener noreferrer">

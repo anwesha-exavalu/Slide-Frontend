@@ -15,6 +15,7 @@ const Sublob2 = () => {
   }
 
   const { metadata, fields } = submission.llm_response;
+  const totalExtractedFields = Object.keys(fields).length;
 
   /* =========================
      Metadata
@@ -62,10 +63,21 @@ const Sublob2 = () => {
         />
       </Card>
 
-      <Card title="Extracted Fields" headStyle={{
-        backgroundColor: "#5d9de2 ",
-        color: "#fff",
-      }}>
+      <Card
+        title={
+          <div>
+            <div>Extracted Fields</div>
+            <div style={{ fontSize: 12, fontWeight: 400 }}>
+              Total extracted fields: {totalExtractedFields}
+            </div>
+          </div>
+        }
+        headStyle={{
+          backgroundColor: "#5d9de2",
+          color: "#fff",
+        }}
+      >
+
         <List
           itemLayout="vertical"
           dataSource={fieldList}
