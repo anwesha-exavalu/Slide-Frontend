@@ -16,13 +16,12 @@ export const TableContainer = styled.div`
   }
   .ant-table-content table {
     tr th {
-      background-color: ${({ theme }) =>
-        themes[theme].dashboardQuickLinkItemsBg};
+      background-color:#5d9de2 !important;
      
       font-size: 14px;
       font-weight: 600;
       line-height: 18px;
-      color: ${({ theme }) => themes[theme].stepLabel};
+      color: #fff;
     }
     tr td {
    

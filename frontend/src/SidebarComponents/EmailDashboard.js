@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Table, Button, Modal, message, Divider } from "antd";
+import { Table, Button, Modal, message, Divider , Row, Col, Avatar, Space} from "antd";
 import { InfoCircleOutlined, EyeOutlined } from "@ant-design/icons";
 import { TableContainer } from "../styles/components/TableComponent";
 import useMetaData from "../context/metaData";
+import { Container } from "../styles/components/Layout";
 
 /* =========================
    S3 Config
@@ -135,7 +136,7 @@ const EmailDashboard = () => {
             title: "Submission ID",
             dataIndex: "submissionId",
             key: "submissionId",
-            width: 120,
+            width: 110,
             render: (id) => id?.slice(0, 8),
         },
         {
@@ -148,54 +149,15 @@ const EmailDashboard = () => {
             title: "Category",
             dataIndex: "category",
             key: "category",
-            width: 150,
+            width: 120,
             render: (value) =>
                 value ? value.replace(/_/g, " ") : "—",
         },
-        ,
-        {
-            title: "Source",
-            key: "source",
-            width: 120,
-            align: "center",
-            ellipsis: false, 
-            render: (_, record) => (
-                <div style={{ display: "flex", justifyContent: "center" }}>
-                    <Button
-                        size="small"
-                        type="default"
-                        style={{
-                            borderRadius: 6,
-                            borderColor: "#1677ff",
-                            color: "#1677ff",
-                        }}
-                        onClick={() => loadProcessedJson(record, "mail")}
-                    >
-                        View
-                    </Button>
-                </div>
-            ),
-        },
 
-        {
-            title: "Summary",
-            key: "summary",
-            width: 80,
-            align: "left",
-            render: (_, record) => (
-                <Button
-                    size="small"
-                    type="default"
-                    onClick={() => loadProcessedJson(record, "summary")}
-                >
-                    View
-                </Button>
-            ),
-        },
         {
             title: "JSON",
             key: "json",
-            width: 20,
+            width: 80,
             align: "left",
             render: (_, record) => (
                 <InfoCircleOutlined
@@ -204,18 +166,59 @@ const EmailDashboard = () => {
                 />
             ),
         },
-        ,
+
+        {
+            title: "Summary",
+            key: "summary",
+            width: 40,
+            align: "left",
+            render: (_, record) => (
+                <Button
+                    size="small"
+                    type="default"
+                    onClick={() => loadProcessedJson(record, "summary")}
+                    style={{ width: '80px' }}
+                >
+                    View
+                </Button>
+            ),
+        },
+        {
+            title: "Source",
+            key: "source",
+            width: 40,
+            align: "left",
+            ellipsis: false,
+            render: (_, record) => (
+                <div style={{ display: "flex", justifyContent: "left", }}>
+                    <Button
+                        size="small"
+                        type="default"
+                        style={{
+                            borderRadius: 6,
+                            borderColor: "#1677ff",
+                            color: "#1677ff",
+                            width: '80px'
+                        }}
+                        onClick={() => loadProcessedJson(record, "mail")}
+                    >
+                        View
+                    </Button>
+                </div>
+            ),
+        },
     ];
 
 
     return (
-        <>
+        <Container>
             <MyTableComponent
                 columns={columns}
                 dataSource={rows}
                 loading={loading}
             />
 
+            {/* JSON Modal */}
             {/* JSON Modal */}
             <Modal
                 title="Processed JSON"
@@ -224,6 +227,21 @@ const EmailDashboard = () => {
                 footer={null}
                 width={900}
             >
+                {/* Copy Button */}
+                <div style={{ textAlign: "right", marginBottom: 8 }}>
+                    <Button
+                        size="small"
+                        onClick={() => {
+                            navigator.clipboard.writeText(
+                                JSON.stringify(selectedJson, null, 2)
+                            );
+                            message.success("JSON copied to clipboard");
+                        }}
+                    >
+                        Copy JSON
+                    </Button>
+                </div>
+
                 <pre
                     style={{
                         maxHeight: 500,
@@ -238,59 +256,83 @@ const EmailDashboard = () => {
             </Modal>
 
             {/* Outlook-style Email Preview */}
-            {/* Outlook-style Email Preview */}
-            <Modal
-                title="Email Preview"
-                open={mailModalOpen}
-                onCancel={() => setMailModalOpen(false)}
-                footer={null}
-                width={900}
-            >
-                <div
-                    style={{
-                        border: "1px solid #e5e7eb",
-                        borderRadius: 8,
-                        padding: 16,
-                        background: "#ffffff",
-                    }}
-                >
-                    {/* Header Section */}
-                    <div style={{ marginBottom: 12, lineHeight: 1.8 }}>
-                        <div>
-                            <strong>From:</strong>{" "}
-                            {selectedMail?.headers?.from || "—"}
-                        </div>
-                        <div>
-                            <strong>To:</strong>{" "}
-                            {selectedMail?.headers?.to || "—"}
-                        </div>
-                        <div>
-                            <strong>Subject:</strong>{" "}
-                            {selectedMail?.headers?.subject || "—"}
-                        </div>
-                        <div>
-                            <strong>Date:</strong>{" "}
-                            {selectedMail?.headers?.date || "—"}
-                        </div>
-                    </div>
+          <Modal
+  title={null}
+  open={mailModalOpen}
+  onCancel={() => setMailModalOpen(false)}
+  footer={null}
+  width={950}
+>
+  <div
+    style={{
+      border: "1px solid #e5e7eb",
+      borderRadius: 8,
+      background: "#fff",
+    }}
+  >
+    {/* Header */}
+    <div style={{ padding: 16 }}>
+      <Row align="middle" justify="space-between">
+        <Col>
+          <Space align="start">
+            <Avatar size={40}>
+              {selectedMail?.headers?.from?.[0] || "U"}
+            </Avatar>
 
-                    <Divider style={{ margin: "12px 0" }} />
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 15 }}>
+                {selectedMail?.headers?.from || "—"}
+              </div>
 
-                    {/* Body Section */}
-                    <div
-                        style={{
-                            whiteSpace: "pre-wrap",
-                            background: "#fafafa",
-                            padding: 16,
-                            borderRadius: 6,
-                            minHeight: 220,
-                            fontSize: 14,
-                        }}
-                    >
-                        {selectedMail?.body_text || "No email body available"}
-                    </div>
-                </div>
-            </Modal>
+              <div style={{ color: "#555", fontSize: 13 }}>
+                To: {selectedMail?.headers?.to || "—"}
+              </div>
+            </div>
+          </Space>
+        </Col>
+
+        <Col>
+          <div style={{ color: "#666", fontSize: 13 }}>
+            {selectedMail?.headers?.date || "—"}
+          </div>
+        </Col>
+      </Row>
+    </div>
+
+    <Divider style={{ margin: 0 }} />
+
+    {/* Subject */}
+    <div style={{ padding: "12px 16px", fontSize: 16, fontWeight: 500 }}>
+      {selectedMail?.headers?.subject || "—"}
+    </div>
+
+    <Divider style={{ margin: 0 }} />
+
+    {/* Body */}
+    <div
+      style={{
+        padding: 16,
+        minHeight: 220,
+        whiteSpace: "pre-wrap",
+        lineHeight: 1.6,
+        fontSize: 14,
+      }}
+    >
+      {selectedMail?.body_text || "No email content available"}
+    </div>
+
+    <Divider style={{ margin: 0 }} />
+
+    {/* Footer Actions */}
+    <div style={{ padding: 12 }}>
+      <Space>
+        <Button>Reply</Button>
+        <Button>Forward</Button>
+      </Space>
+    </div>
+  </div>
+</Modal>
+
             <Modal
                 title="Summary"
                 open={summaryModalOpen}
@@ -313,7 +355,7 @@ const EmailDashboard = () => {
 
 
 
-        </>
+        </Container>
     );
 };
 

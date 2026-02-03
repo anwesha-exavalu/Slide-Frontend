@@ -2,18 +2,14 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from "react-router-dom";
 
 import Dashboard from './SidebarComponents/Dashboard';
-import DocumentScreen from './SidebarComponents/DocumentScreen';
-import ClearanceScreen from './SidebarComponents/ClearanceScreen';
-import SearchInsured from './SidebarComponents/SearchInsured';
-import { MenuFoldOutlined, MenuUnfoldOutlined, SettingFilled, HomeOutlined, InfoCircleOutlined, EditFilled, FileTextOutlined, MailOutlined } from '@ant-design/icons';
+
+import { MenuFoldOutlined, MenuUnfoldOutlined,  FileTextOutlined, MailOutlined } from '@ant-design/icons';
 import { Button, Layout, Menu, theme } from 'antd';
 import HeaderDesign from './layout/HeaderDesign';
 
 import { Divider } from 'antd';
 import Sublob2 from './layout/Sublob2';
-import AuditTrail from './SidebarComponents/AuditTrail';
-import AccountInfo from './SidebarComponents/AccountInfo';
-import AccountDashboard from './SidebarComponents/AccountDashboard';
+
 import Login from './layout/Login';
 import EmailDashboard from './SidebarComponents/EmailDashboard';
 
@@ -102,12 +98,7 @@ const AppLayout = () => {
             <Route path="dashboard" element={<Dashboard />} />
              <Route path="email" element={<EmailDashboard/>} />
             <Route path="document-processing" element={<Sublob2 />} />
-            <Route path="audit-trail" element={<AuditTrail />} />
-            <Route path="accountdashboard" element={<AccountDashboard />} />
-            <Route path="accountinfo" element={<AccountInfo />} />
-            <Route path="documentscreen" element={<DocumentScreen />} />
-            <Route path="clearancescreen" element={<ClearanceScreen />} />
-            <Route path="searchinsured" element={<SearchInsured />} />
+           
           </Routes>
         </Content>
         {!isLoginPage && (

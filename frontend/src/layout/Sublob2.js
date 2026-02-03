@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
-import { Table, List, Card, Tag, Row, Col } from "antd";
+import { Table, List, Card, Tag, Row, Col, Input } from "antd";
 
 const Sublob2 = () => {
   const { state } = useLocation();
@@ -88,7 +88,28 @@ const Sublob2 = () => {
                   <strong>{item.fieldName}</strong>
                 </Col>
 
-                <Col span={14}>{item.value}</Col>
+                <Col span={14}>
+                  {String(item.value).length > 120 ? (
+                    <Input.TextArea
+                      value={item.value}
+                      readOnly
+                      autoSize={{ minRows: 2, maxRows: 6 }}
+                      style={{
+                        backgroundColor: "#fafafa",
+                        resize: "none",
+                      }}
+                    />
+                  ) : (
+                    <Input
+                      value={item.value}
+                      readOnly
+                      style={{
+                        backgroundColor: "#fafafa",
+                      }}
+                    />
+                  )}
+                </Col>
+
 
                 <Col span={10} style={{ textAlign: "right" }}>
                   <Tag color={item.confidence_score > 0.8 ? "green" : item.confidence_score > 0.5 ? "orange" : "red"}>
