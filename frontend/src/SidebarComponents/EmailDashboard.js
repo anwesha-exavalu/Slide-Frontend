@@ -323,6 +323,7 @@ const EmailDashboard = () => {
                             gap: 12,
                         }}
                     >
+
                         <Avatar
                             size={40}
                             style={{ backgroundColor: "#d9d9d9", color: "#555" }}
@@ -364,11 +365,14 @@ const EmailDashboard = () => {
                             padding: "20px",
                             fontSize: 14,
                             lineHeight: 1.6,
-                            minHeight: 220,
+                            minHeight: 200,
                         }}
                         dangerouslySetInnerHTML={{
                             __html: stripDisclaimer(selectedMail?.email_body || ""),
+                            
                         }}
+
+                       
                     />
 
                     {/* ===== Footer ===== */}
