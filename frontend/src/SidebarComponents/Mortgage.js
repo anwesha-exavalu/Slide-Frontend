@@ -27,7 +27,6 @@ import useMetaData from "../context/metaData";
 /* =========================
    CONSTANT TEMPLATE
 ========================= */
-const TEMPLATE = ["wind_mit", "mortgage"];
 
 /* =========================
    Table Wrapper (UNCHANGED)
@@ -83,7 +82,7 @@ const DashboardMortgage = () => {
         const BASE_URL = process.env.REACT_APP_AI_EXTRACT;
 
         const response = await fetch(
-          `${BASE_URL}/api/get_extracted_documents?template=${TEMPLATE.join(",")}`
+          `${BASE_URL}/api/get_extracted_documents?template=mortgage`
         );
 
         if (!response.ok) {
@@ -269,8 +268,8 @@ const DashboardMortgage = () => {
                           item.confidence_score > 0.8
                             ? "green"
                             : item.confidence_score > 0.5
-                            ? "orange"
-                            : "red"
+                              ? "orange"
+                              : "red"
                         }
                       >
                         Confidence:{" "}
@@ -299,10 +298,9 @@ const DashboardMortgage = () => {
               const BASE_URL = process.env.REACT_APP_AI_EXTRACT;
               const formData = new FormData();
               formData.append("file", file);
-              formData.append("template", TEMPLATE.join(","));
 
               const response = await fetch(
-                `${BASE_URL}/api/extract_document`,
+                `${BASE_URL}/api/extract_document?template=mortgage`,
                 { method: "POST", body: formData }
               );
 
