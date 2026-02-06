@@ -12,6 +12,7 @@ import Sublob2 from './layout/Sublob2';
 
 import Login from './layout/Login';
 import EmailDashboard from './SidebarComponents/EmailDashboard';
+import DashboardMortgage from './SidebarComponents/Mortgage';
 
 const { Sider, Content, Footer } = Layout;
 
@@ -22,6 +23,7 @@ const MyMenu = ({ collapsed }) => {
     '/dashboard': '1',
    
     '/email': '2',
+    '/mortgage': '4',
   };
 
   return (
@@ -35,6 +37,9 @@ const MyMenu = ({ collapsed }) => {
       </Menu.Item>
       <Menu.Item key="2" icon={<MailOutlined/>} title={"Email"}>
         {!collapsed ? <Link to="/email" style={{ textDecoration: 'none' }}>Email</Link> : <Link to="/email" style={{ textDecoration: 'none' }}/>}
+      </Menu.Item>
+       <Menu.Item key="4" icon={<FileTextOutlined/>} title={"Mortgage Letter"}>
+        {!collapsed ? <Link to="/mortgage" style={{ textDecoration: 'none' }}>Mortgage Letter</Link> : <Link to="/mortgage" style={{ textDecoration: 'none' }}/>}
       </Menu.Item>
     </Menu>
   );
@@ -98,6 +103,7 @@ const AppLayout = () => {
             <Route path="dashboard" element={<Dashboard />} />
              <Route path="email" element={<EmailDashboard/>} />
             <Route path="document-processing" element={<Sublob2 />} />
+             <Route path="mortgage" element={<DashboardMortgage />} />
            
           </Routes>
         </Content>
