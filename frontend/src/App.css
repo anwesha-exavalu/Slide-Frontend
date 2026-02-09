@@ -41,3 +41,38 @@ html, body, #root {
   margin: 0;
 }
 
+/* ===== Sidebar Menu Text Fix ===== */
+
+.side-menu .ant-menu-item {
+  height: auto !important;        /* allow dynamic height */
+  line-height: 1.4 !important;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* Allow text wrapping */
+.side-menu .ant-menu-title-content {
+  white-space: normal !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Ensure link text also wraps */
+.side-menu .ant-menu-item a {
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.4;
+  display: inline-block;
+}
+
+/* When collapsed → keep single line & centered */
+.ant-layout-sider-collapsed .side-menu .ant-menu-title-content {
+  white-space: nowrap !important;
+}
+
+/* Optional: better icon alignment for multi-line text */
+.side-menu .ant-menu-item-icon {
+  margin-top: 4px;
+}
+
+

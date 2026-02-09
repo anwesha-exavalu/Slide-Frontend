@@ -3,15 +3,17 @@ import { BrowserRouter as Router, Route, Routes, Link, useLocation } from "react
 
 import Dashboard from './SidebarComponents/Dashboard';
 
-import { MenuFoldOutlined, MenuUnfoldOutlined,  FileTextOutlined, MailOutlined } from '@ant-design/icons';
+import { MenuFoldOutlined, MenuUnfoldOutlined, FileTextOutlined, MailOutlined } from '@ant-design/icons';
 import { Button, Layout, Menu, theme } from 'antd';
 import HeaderDesign from './layout/HeaderDesign';
+import "./App.css";
 
 import { Divider } from 'antd';
-import Sublob2 from './layout/Sublob2';
+// import Sublob2 from './layout/Sublob2';
 
 import Login from './layout/Login';
 import EmailDashboard from './SidebarComponents/EmailDashboard';
+import DocumentIntelligence from './SidebarComponents/documentIntelligence';
 import DashboardMortgage from './SidebarComponents/Mortgage';
 
 const { Sider, Content, Footer } = Layout;
@@ -21,8 +23,10 @@ const MyMenu = ({ collapsed }) => {
 
   const pathToKey = {
     '/dashboard': '1',
-   
+
     '/email': '2',
+
+    '/document-processing': '3',
     '/mortgage': '4',
   };
 
@@ -30,14 +34,30 @@ const MyMenu = ({ collapsed }) => {
     <Menu
       theme="dark"
       mode="inline"
+      className="side-menu"
       selectedKeys={[pathToKey[location.pathname] || '1']}
     >
+
       <Menu.Item key="1" icon={<FileTextOutlined />} title={"Dashboard"}>
-        {!collapsed ? <Link to="/dashboard" style={{ textDecoration: 'none' }}>IDP</Link> : <Link to="/dashboard" style={{ textDecoration: 'none' }}/>}
+        {!collapsed ? <Link to="/dashboard" style={{ textDecoration: 'none' }}>IDP</Link> : <Link to="/dashboard" style={{ textDecoration: 'none' }} />}
       </Menu.Item>
-      <Menu.Item key="2" icon={<MailOutlined/>} title={"Email"}>
-        {!collapsed ? <Link to="/email" style={{ textDecoration: 'none' }}>Email</Link> : <Link to="/email" style={{ textDecoration: 'none' }}/>}
+      <Menu.Item key="2" icon={<MailOutlined />} title={"Email"}>
+        {!collapsed ? <Link to="/email" style={{ textDecoration: 'none' }}>Email</Link> : <Link to="/email" style={{ textDecoration: 'none' }} />}
       </Menu.Item>
+      <Menu.Item
+        key="3"
+        icon={<FileTextOutlined />}
+        title={"IDP-Document Intelligence"}
+      >
+        {!collapsed ? (
+          <Link to="/document-processing" style={{ textDecoration: 'none' }}>
+            IDP-Document Intelligence
+          </Link>
+        ) : (
+          <Link to="/document-processing" style={{ textDecoration: 'none' }} />
+        )}
+      </Menu.Item>
+
        <Menu.Item key="4" icon={<FileTextOutlined/>} title={"Mortgage Letter"}>
         {!collapsed ? <Link to="/mortgage" style={{ textDecoration: 'none' }}>Mortgage Letter</Link> : <Link to="/mortgage" style={{ textDecoration: 'none' }}/>}
       </Menu.Item>
@@ -101,8 +121,8 @@ const AppLayout = () => {
           <Routes>
             <Route exact path="/" element={<Login />} />
             <Route path="dashboard" element={<Dashboard />} />
-             <Route path="email" element={<EmailDashboard/>} />
-            <Route path="document-processing" element={<Sublob2 />} />
+            <Route path="email" element={<EmailDashboard />} />
+            <Route path="document-processing" element={<DocumentIntelligence />} />
              <Route path="mortgage" element={<DashboardMortgage />} />
            
           </Routes>
