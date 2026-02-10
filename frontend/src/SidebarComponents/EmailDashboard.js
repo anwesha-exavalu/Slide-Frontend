@@ -290,7 +290,26 @@ const EmailDashboard = () => {
                     <Space direction="vertical" size={0}>
                         {attachments.map((a) => (
                             <span key={a.blobPath} style={{ fontSize: 14 }}>
-                                {a.name}
+                                <a
+                                    href="#!"
+                                    style={{ color: "#1677ff" }}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+
+                                        const url = buildAttachmentUrl(a.blobPath);
+
+                                        // Same behavior as email modal
+                                        const link = document.createElement("a");
+                                        link.href = url;
+                                        link.download = a.name;
+                                        link.target = "_blank";
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                    }}
+                                >
+                                    {a.name}
+                                </a>
                                 {a.type ? ` (${a.type})` : ""}
                             </span>
                         ))}
@@ -299,6 +318,7 @@ const EmailDashboard = () => {
                     "-"
                 ),
         },
+
 
         {
             title: "Review",
@@ -329,8 +349,8 @@ const EmailDashboard = () => {
                 onCancel={() => setMailModalOpen(false)}
                 footer={null}
                 width={980}
-               
-            
+
+
             >
                 <div
                     style={{
