@@ -58,8 +58,8 @@ const MyMenu = ({ collapsed }) => {
         )}
       </Menu.Item>
 
-       <Menu.Item key="4" icon={<FileTextOutlined/>} title={"Mortgage Letter"}>
-        {!collapsed ? <Link to="/mortgage" style={{ textDecoration: 'none' }}>Mortgage Letter</Link> : <Link to="/mortgage" style={{ textDecoration: 'none' }}/>}
+      <Menu.Item key="4" icon={<FileTextOutlined />} title={"Mortgage Letter"}>
+        {!collapsed ? <Link to="/mortgage" style={{ textDecoration: 'none' }}>Mortgage Letter</Link> : <Link to="/mortgage" style={{ textDecoration: 'none' }} />}
       </Menu.Item>
     </Menu>
   );
@@ -77,14 +77,22 @@ const AppLayout = () => {
   const isLoginPage = location.pathname === '/';
 
   return (
-    <Layout>
+    <Layout style={{ height: "100vh" }}>
       {!isLoginPage && (
         <Sider
           trigger={null}
           collapsible
           collapsed={collapsed}
-          style={{ backgroundColor: '#2457d3', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+          style={{
+            backgroundColor: "#2457d3",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            height: "100vh",        // ✅ full height
+            overflow: "hidden",     // ✅ no scroll
+          }}
         >
+
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined style={{ color: "white" }} /> : <MenuFoldOutlined style={{ color: "white" }} />}
@@ -108,27 +116,51 @@ const AppLayout = () => {
         </Sider>
       )}
       <Layout>
-        {!isLoginPage && <HeaderDesign />}
+        {!isLoginPage && (
+          <div
+            style={{
+              position: "sticky",
+              top: 0,
+              zIndex: 100,
+              background: colorBgContainer,
+            }}
+          >
+            <HeaderDesign />
+          </div>
+        )}
+
         <Content
           style={{
-            margin: '5px 9px',
+            margin: "5px 9px",
             padding: 24,
-            minHeight: 560,
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
+
+            flex: 1,                 // ✅ fill available space
+            overflowY: "auto",       // ✅ scroll only content
           }}
         >
+
           <Routes>
             <Route exact path="/" element={<Login />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="email" element={<EmailDashboard />} />
             <Route path="document-processing" element={<DocumentIntelligence />} />
-             <Route path="mortgage" element={<DashboardMortgage />} />
-           
+            <Route path="mortgage" element={<DashboardMortgage />} />
+
           </Routes>
         </Content>
         {!isLoginPage && (
-          <Footer style={{ textAlign: 'center' }}>
+          <Footer
+            style={{
+              textAlign: "center",
+              position: "sticky",
+              bottom: 0,
+              background: colorBgContainer,
+              zIndex: 10,
+            }}
+          >
+
             {/* Underwriter Workbench {new Date().getFullYear()} */}
           </Footer>
         )}
