@@ -62,6 +62,16 @@ const stripDisclaimer = (html = "") => {
 
 const getSubmissionId = (id = "") =>
     id ? id.replace(/=$/, "").slice(-6) : "—";
+const isValidRow = (row) => {
+    if (!row) return false;
+
+    return Boolean(
+        row.from ||
+        row.subject ||
+        row.email_body ||
+        (row.attachments && row.attachments.length > 0)
+    );
+};
 
 /* =========================
    TABLE WRAPPER (UNCHANGED)
@@ -199,13 +209,21 @@ const EmailDashboard = () => {
 
             setRows((prev) => {
                 const map = new Map(prev.map((r) => [r.blobName, r]));
-                loaded.filter(Boolean).forEach((r) => map.set(r.blobName, r));
-                return Array.from(map.values()).sort(
-                    (a, b) =>
-                        new Date(b.received_at || 0) -
-                        new Date(a.received_at || 0)
-                );
+
+                loaded
+                    .filter(Boolean)
+                    .filter(isValidRow) // ✅ hide empty rows
+                    .forEach((r) => map.set(r.blobName, r));
+
+                return Array.from(map.values())
+                    .filter(isValidRow) // ✅ safety filter
+                    .sort(
+                        (a, b) =>
+                            new Date(b.received_at || 0) -
+                            new Date(a.received_at || 0)
+                    );
             });
+
         } catch (e) {
             console.error(e);
             message.error("Failed to load emails");
