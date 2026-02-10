@@ -12,6 +12,8 @@ import { InfoCircleOutlined, PaperClipOutlined } from "@ant-design/icons";
 import { TableContainer } from "../styles/components/TableComponent";
 import useMetaData from "../context/metaData";
 import { Container } from "../styles/components/Layout";
+import { Checkbox } from "antd";
+
 
 /* =========================
    AZURE CONFIG (UNCHANGED)
@@ -97,6 +99,7 @@ const EmailDashboard = () => {
     const [selectedJson, setSelectedJson] = useState(null);
     const [selectedMail, setSelectedMail] = useState(null);
     const [selectedSummary, setSelectedSummary] = useState("");
+    const [reviewMap, setReviewMap] = useState({});
 
     const knownRef = useRef(new Map());
     const pollingRef = useRef(false);
@@ -222,28 +225,31 @@ const EmailDashboard = () => {
        COLUMNS (UNCHANGED)
     ========================= */
     const columns = [
-        {
-            title: "Submission ID",
-            dataIndex: "email_id",
-            render: getSubmissionId,
-            width: 120,
-        },
-        { title: "From", dataIndex: "from", ellipsis: true, width: 200 },
-        { title: "Category", dataIndex: "classification", width: 150 },
+        { title: "Email Type", dataIndex: "classification", width: 300 },
+        // {
+        //     title: "Submission ID",
+        //     dataIndex: "email_id",
+        //     render: getSubmissionId,
+        //     width: 120,
+        // },
+        { title: "Sender Email ID", dataIndex: "from", ellipsis: true, width: 300 },
+        { title: "Date and Time", dataIndex: "received_at", ellipsis: true, width: 250 },
+        { title: "Subject", dataIndex: "subject", ellipsis: true, width: 450 },
+
         { title: "Claim Number", dataIndex: "claim_number", width: 150 },
-        {
-            title: "JSON",
-            render: (_, r) => (
-                <InfoCircleOutlined
-                    style={{ cursor: "pointer", color: "#1677ff" }}
-                    onClick={() => {
-                        setSelectedJson(r.__full);
-                        setJsonModalOpen(true);
-                    }}
-                />
-            ),
-            width: 80,
-        },
+        // {
+        //     title: "JSON",
+        //     render: (_, r) => (
+        //         <InfoCircleOutlined
+        //             style={{ cursor: "pointer", color: "#1677ff" }}
+        //             onClick={() => {
+        //                 setSelectedJson(r.__full);
+        //                 setJsonModalOpen(true);
+        //             }}
+        //         />
+        //     ),
+        //     width: 80,
+        // },
         {
             title: "Summary",
             render: (_, r) => (
@@ -275,6 +281,42 @@ const EmailDashboard = () => {
             ),
             width: 120,
         },
+        {
+            title: "Attachments",
+            dataIndex: "attachments",
+            width: 350,
+            render: (attachments = []) =>
+                attachments.length ? (
+                    <Space direction="vertical" size={0}>
+                        {attachments.map((a) => (
+                            <span key={a.blobPath} style={{ fontSize: 14 }}>
+                                {a.name}
+                                {a.type ? ` (${a.type})` : ""}
+                            </span>
+                        ))}
+                    </Space>
+                ) : (
+                    "-"
+                ),
+        },
+
+        {
+            title: "Review",
+            dataIndex: "review",
+            width: 80,
+            render: (_, r) => (
+                <Checkbox
+                    checked={!!reviewMap[r.blobName]}
+                    onChange={(e) => {
+                        setReviewMap((prev) => ({
+                            ...prev,
+                            [r.blobName]: e.target.checked,
+                        }));
+                    }}
+                />
+            ),
+        },
+
     ];
 
     return (
@@ -287,22 +329,58 @@ const EmailDashboard = () => {
                 onCancel={() => setMailModalOpen(false)}
                 footer={null}
                 width={980}
-                bodyStyle={{ padding: 0 }}
+               
+            
             >
-                <div style={{ background: "#fff" }}>
-                    <div style={{ padding: 16, display: "flex", gap: 12 }}>
-                        <Avatar>{selectedMail?.from?.[0]}</Avatar>
+                <div
+                    style={{
+                        background: "#fff",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 8,
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                    }}
+                >
+
+                    <div
+                        style={{
+                            padding: "16px 20px",
+                            borderBottom: "1px solid #f0f0f0",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                        }}
+                    >
+                        <Avatar size={40}>
+                            {selectedMail?.from?.[0]}
+                        </Avatar>
+
                         <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 600 }}>{selectedMail?.from}</div>
-                            <div style={{ fontSize: 12 }}>
+                            <div style={{ fontWeight: 600 }}>
+                                {selectedMail?.from}
+                            </div>
+                            <div style={{ fontSize: 12, color: "#666" }}>
                                 To: {selectedMail?.to}
                             </div>
                         </div>
+
+                        <div style={{ fontSize: 12, color: "#666" }}>
+                            {selectedMail?.received_at}
+                        </div>
                     </div>
 
-                    <div style={{ padding: "8px 16px", fontWeight: 600 }}>
+
+                    <div
+                        style={{
+                            padding: "14px 20px",
+                            fontWeight: 600,
+                            fontSize: 16,
+                            borderBottom: "1px solid #f0f0f0",
+                            marginBottom: 12,
+                        }}
+                    >
                         {selectedMail?.subject}
                     </div>
+
 
                     {/* ✅ NEW: ATTACHMENTS (SAFE ADDITION) */}
                     {selectedMail?.attachments?.length > 0 && (
@@ -332,15 +410,20 @@ const EmailDashboard = () => {
                     )}
 
                     <div
-                        style={{ padding: 16 }}
+                        style={{
+                            padding: "20px",
+                            fontSize: 14,
+                            lineHeight: 1.6,
+                        }}
                         dangerouslySetInnerHTML={{
                             __html: stripDisclaimer(selectedMail?.email_body || ""),
                         }}
                     />
 
+
                     <div style={{ padding: 16, display: "flex", gap: 8 }}>
-                        <Button>Reply</Button>
-                        <Button>Forward</Button>
+                        {/* <Button>Reply</Button>
+                        <Button>Forward</Button> */}
                     </div>
                 </div>
             </Modal>
