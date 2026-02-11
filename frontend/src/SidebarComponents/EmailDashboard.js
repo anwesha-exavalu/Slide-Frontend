@@ -243,16 +243,16 @@ const EmailDashboard = () => {
        COLUMNS (UNCHANGED)
     ========================= */
     const columns = [
-        { title: "Email Type", dataIndex: "classification", width: 300 },
+        { title: "Email Type", dataIndex: "classification", width: 260 },
         // {
         //     title: "Submission ID",
         //     dataIndex: "email_id",
         //     render: getSubmissionId,
         //     width: 120,
         // },
-        { title: "Sender Email ID", dataIndex: "from", ellipsis: true, width: 300 },
-        { title: "Date and Time", dataIndex: "received_at", ellipsis: true, width: 250 },
-        { title: "Subject", dataIndex: "subject", ellipsis: true, width: 450 },
+        { title: "Sender Email ID", dataIndex: "from", ellipsis: true, width: 280 },
+        { title: "Date and Time", dataIndex: "received_at", ellipsis: true, width: 220 },
+        { title: "Subject", dataIndex: "subject", ellipsis: true, width: 550 },
 
         { title: "Claim Number", dataIndex: "claim_number", width: 150 },
         // {

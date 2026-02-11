@@ -5,7 +5,7 @@ import DropdownMenu from './ActionMenu'; // Import the DropdownMenu component
 export function HeaderDesign() {
   return (
     <header className={styles.header}>
-      <img src="Exavalu_logo.png" alt="Exavalu_logo.png" className={styles.complogo} height="50%" />
+      <img src="Exavalu_logo.png" alt="Exavalu_logo.png" className={styles.complogo} height="100%" />
 
       
 
