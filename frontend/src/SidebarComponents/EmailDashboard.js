@@ -191,6 +191,7 @@ const EmailDashboard = () => {
                         to: email.to,
                         subject: email.subject,
                         classification: ui.emailCategory,
+                        lob: ui.lob,
                         claim_number: ui.claimNumber,
                         summary: ui.detailedSummary,
                         email_body: email.email_body,
@@ -243,7 +244,21 @@ const EmailDashboard = () => {
        COLUMNS (UNCHANGED)
     ========================= */
     const columns = [
-        { title: "Email Type", dataIndex: "classification", width: 260 },
+        {
+            title: "Email Type",
+            width: 260,
+            render: (_, r) => (
+                <div>
+                    <div style={{ fontWeight: 400 }}>
+                        {r.lob || " "}
+                    </div>
+                    <div style={{ fontSize: 14}}>
+                        {r.classification || " "}
+                    </div>
+                </div>
+            ),
+        },
+
         // {
         //     title: "Submission ID",
         //     dataIndex: "email_id",

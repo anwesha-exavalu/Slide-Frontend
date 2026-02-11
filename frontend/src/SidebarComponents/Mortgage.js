@@ -69,6 +69,7 @@ const DashboardMortgage = () => {
   const [selectedSubmissionId, setSelectedSubmissionId] = useState(null);
 
   const hasFetchedRef = useRef(false);
+  const detailsRef = useRef(null);
 
   /* =========================
      API CALL (UNCHANGED)
@@ -102,6 +103,16 @@ const DashboardMortgage = () => {
 
     fetchDocuments();
   }, []);
+  useEffect(() => {
+    if (selectedSubmissionId && detailsRef.current) {
+      setTimeout(() => {
+        detailsRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100); // small delay ensures render completes
+    }
+  }, [selectedSubmissionId]);
 
   /* =========================
      Table Data
@@ -185,11 +196,12 @@ const DashboardMortgage = () => {
     value,
   }));
 
-  const fieldList = Object.entries(fields).map(([name, data], i) => ({
+  const fieldList = Object.entries(fields).map(([name, values], i) => ({
     id: i,
     fieldName: name,
-    ...data,
+    values: Array.isArray(values) ? values : [],
   }));
+
 
   /* =========================
      RENDER
@@ -218,7 +230,7 @@ const DashboardMortgage = () => {
           DETAILS VIEW (Sublob2)
       ========================= */}
       {submission && (
-        <div style={{ marginTop: 24 }}>
+        <div ref={detailsRef} style={{ marginTop: 24 }}>
           <Card
             title="Document Metadata"
             headStyle={{ backgroundColor: "#5d9de2", color: "#fff" }}
@@ -250,33 +262,44 @@ const DashboardMortgage = () => {
                       <strong>{item.fieldName}</strong>
                     </Col>
 
-                    <Col span={14}>
-                      {String(item.value).length > 120 ? (
-                        <Input.TextArea
-                          value={item.value}
-                          readOnly
-                          autoSize={{ minRows: 2, maxRows: 6 }}
-                        />
-                      ) : (
-                        <Input value={item.value} readOnly />
-                      )}
+                    <Col span={24}>
+                      {item.values.map((fieldItem, index) => (
+                        <Row key={index} gutter={[16, 8]} style={{ marginBottom: 12 }}>
+
+                          <Col span={14}>
+                            {String(fieldItem.value || "").length > 120 ? (
+                              <Input.TextArea
+                                value={fieldItem.value}
+                                readOnly
+                                autoSize={{ minRows: 2, maxRows: 6 }}
+                              />
+                            ) : (
+                              <Input value={fieldItem.value} readOnly />
+                            )}
+                          </Col>
+
+                          <Col span={10} style={{ textAlign: "right" }}>
+                            <Tag
+                              color={
+                                fieldItem.confidence_score > 0.8
+                                  ? "green"
+                                  : fieldItem.confidence_score > 0.5
+                                    ? "orange"
+                                    : "red"
+                              }
+                            >
+                              Confidence: {Math.round((fieldItem.confidence_score || 0) * 100)}%
+                            </Tag>
+
+                            <Tag>
+                              Page: {fieldItem.page ?? "—"}
+                            </Tag>
+                          </Col>
+
+                        </Row>
+                      ))}
                     </Col>
 
-                    <Col span={10} style={{ textAlign: "right" }}>
-                      <Tag
-                        color={
-                          item.confidence_score > 0.8
-                            ? "green"
-                            : item.confidence_score > 0.5
-                              ? "orange"
-                              : "red"
-                        }
-                      >
-                        Confidence:{" "}
-                        {Math.round(item.confidence_score * 100)}%
-                      </Tag>
-                      <Tag>Page: {item.page}</Tag>
-                    </Col>
                   </Row>
                 </List.Item>
               )}
