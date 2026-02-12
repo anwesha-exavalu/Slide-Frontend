@@ -38,7 +38,7 @@ const MyTableComponent = ({ columns, dataSource, loading }) => {
         columns={columns}
         dataSource={dataSource}
         loading={loading}
-        pagination
+        pagination={{ pageSize: 5 }}
         components={{
           header: {
             cell: (props) => (
@@ -65,6 +65,8 @@ const Dashboard = () => {
   const [selectedSubmissionId, setSelectedSubmissionId] = useState(null);
 
   const hasFetchedRef = useRef(false);
+  const detailsRef = useRef(null);
+
 
   /* =========================
      API CALL (UNCHANGED)
@@ -98,6 +100,18 @@ const Dashboard = () => {
 
     fetchDocuments();
   }, []);
+
+  useEffect(() => {
+    if (selectedSubmissionId && detailsRef.current) {
+      setTimeout(() => {
+        detailsRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
+    }
+  }, [selectedSubmissionId]);
+
 
   /* =========================
      Table Data
@@ -214,7 +228,8 @@ const Dashboard = () => {
           DETAILS VIEW (Sublob2)
       ========================= */}
       {submission && (
-        <div style={{ marginTop: 24 }}>
+        <div ref={detailsRef} style={{ marginTop: 24 }}>
+
           <Card
             title="Document Metadata"
             headStyle={{ backgroundColor: "#5d9de2", color: "#fff" }}

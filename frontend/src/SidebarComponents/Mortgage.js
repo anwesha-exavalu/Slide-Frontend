@@ -42,7 +42,7 @@ const MyTableComponent = ({ columns, dataSource, loading }) => {
         columns={columns}
         dataSource={dataSource}
         loading={loading}
-        pagination
+       pagination={{ pageSize: 5 }}
         components={{
           header: {
             cell: (props) => (
