@@ -248,14 +248,12 @@ const EmailDashboard = () => {
             title: "Email Type",
             width: 260,
             render: (_, r) => (
-                <div>
-                    <div style={{ fontWeight: 400 }}>
-                        {r.lob || " "}
-                    </div>
-                    <div style={{ fontSize: 14}}>
-                        {r.classification || " "}
-                    </div>
+
+
+                <div style={{ fontSize: 14 }}>
+                    {r.classification || " "}
                 </div>
+
             ),
         },
 

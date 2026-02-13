@@ -42,7 +42,7 @@ const MyTableComponent = ({ columns, dataSource, loading }) => {
         columns={columns}
         dataSource={dataSource}
         loading={loading}
-       pagination={{ pageSize: 5 }}
+        pagination={{ pageSize: 5 }}
         components={{
           header: {
             cell: (props) => (
@@ -263,102 +263,115 @@ const DashboardMortgage = () => {
                     </Col>
 
                     <Col span={24}>
-                      {item.values.map((fieldItem, index) => (
-                        <Row key={index} gutter={[16, 8]} style={{ marginBottom: 12 }}>
+                      <div
+                        style={{
+                          maxHeight: item.values.length > 4 ? 260 : "auto",
+                          overflowY: item.values.length > 4 ? "auto" : "visible",
+                          paddingRight: item.values.length > 4 ? 8 : 0,
+                        }}
+                      >
+                        {item.values.map((fieldItem, index) => (
 
-                          <Col span={14}>
-                            {String(fieldItem.value || "").length > 120 ? (
-                              <Input.TextArea
-                                value={fieldItem.value}
-                                readOnly
-                                autoSize={{ minRows: 2, maxRows: 6 }}
-                              />
-                            ) : (
-                              <Input value={fieldItem.value} readOnly />
-                            )}
-                          </Col>
+                          <Row key={index} gutter={[16, 8]} style={{ marginBottom: 12 }}>
 
-                          <Col span={10} style={{ textAlign: "right" }}>
-                            <Tag
-                              color={
-                                fieldItem.confidence_score > 0.8
-                                  ? "green"
-                                  : fieldItem.confidence_score > 0.5
-                                    ? "orange"
-                                    : "red"
-                              }
-                            >
-                              Confidence: {Math.round((fieldItem.confidence_score || 0) * 100)}%
-                            </Tag>
+                            <Col span={14}>
+                              {String(fieldItem.value || "").length > 120 ? (
+                                <Input.TextArea
+                                  value={fieldItem.value}
+                                  readOnly
+                                  autoSize={{ minRows: 2, maxRows: 6 }}
+                                />
+                              ) : (
+                                <Input value={fieldItem.value} readOnly />
+                              )}
+                            </Col>
 
-                            <Tag>
-                              Page: {fieldItem.page ?? "—"}
-                            </Tag>
-                          </Col>
+                            <Col span={10} style={{ textAlign: "right" }}>
+                              <Tag
+                                color={
+                                  fieldItem.confidence_score > 0.8
+                                    ? "green"
+                                    : fieldItem.confidence_score > 0.5
+                                      ? "orange"
+                                      : "red"
+                                }
+                              >
+                                Confidence: {Math.round((fieldItem.confidence_score || 0) * 100)}%
+                              </Tag>
 
-                        </Row>
-                      ))}
-                    </Col>
+                              <Tag>
+                                Page: {fieldItem.page ?? "—"}
+                              </Tag>
+                            </Col>
 
-                  </Row>
+                          </Row>
+                        ))}
+                       
+                      </div>
+                  
+
+                  </Col>
+
+                </Row>
                 </List.Item>
               )}
             />
-          </Card>
+        </Card>
         </div>
-      )}
+  )
+}
 
-      {/* Upload Modal */}
-      <Modal
-        title="Upload File"
-        open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
-        footer={null}
-      >
-        <Upload.Dragger
-          customRequest={async ({ file, onSuccess, onError }) => {
-            try {
-              const BASE_URL = process.env.REACT_APP_AI_EXTRACT;
-              const formData = new FormData();
-              formData.append("file", file);
+{/* Upload Modal */ }
+<Modal
+  title="Upload File"
+  open={isModalOpen}
+  onCancel={() => setIsModalOpen(false)}
+  footer={null}
+>
+  <Upload.Dragger
+    customRequest={async ({ file, onSuccess, onError }) => {
+      try {
+        const BASE_URL = process.env.REACT_APP_AI_EXTRACT;
+        const formData = new FormData();
+        formData.append("file", file);
 
-              const response = await fetch(
-                `${BASE_URL}/api/extract_document?template=mortgage`,
-                { method: "POST", body: formData }
-              );
+        const response = await fetch(
+          `${BASE_URL}/api/extract_document?template=mortgage`,
+          { method: "POST", body: formData }
+        );
 
-              const result = await response.json();
-              setApiData((prev) => [...prev, result]);
-              setSelectedSubmissionId(result.submission_id);
-              setIsModalOpen(false);
-              message.success("File processed successfully");
-              onSuccess();
-            } catch (err) {
-              message.error("Upload failed");
-              onError(err);
-            }
-          }}
-        >
-          <p className="ant-upload-drag-icon">
-            <UploadOutlined />
-          </p>
-          <p>Click or drag file to upload</p>
-        </Upload.Dragger>
-      </Modal>
+        const result = await response.json();
+        setApiData((prev) => [...prev, result]);
+        setSelectedSubmissionId(result.submission_id);
+        setIsModalOpen(false);
+        message.success("File processed successfully");
+        onSuccess();
+      } catch (err) {
+        message.error("Upload failed");
+        onError(err);
+      }
+    }}
+  >
+    <p className="ant-upload-drag-icon">
+      <UploadOutlined />
+    </p>
+    <p>Click or drag file to upload</p>
+  </Upload.Dragger>
+</Modal>
 
-      {/* JSON Modal */}
-      <Modal
-        title="LLM Response"
-        open={jsonModalOpen}
-        onCancel={() => setJsonModalOpen(false)}
-        footer={null}
-        width={900}
-      >
-        <pre style={{ maxHeight: 500, overflow: "auto" }}>
-          {JSON.stringify(selectedJson, null, 2)}
-        </pre>
-      </Modal>
-    </Container>
+{/* JSON Modal */ }
+<Modal
+  title="LLM Response"
+  open={jsonModalOpen}
+  onCancel={() => setJsonModalOpen(false)}
+  footer={null}
+  width={900}
+>
+  <pre style={{ maxHeight: 500, overflow: "auto" }}>
+    {JSON.stringify(selectedJson, null, 2)}
+  </pre>
+</Modal>
+    </Container >
   );
 };
 
