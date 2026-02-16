@@ -272,19 +272,19 @@ const EmailDashboard = () => {
         { title: "Subject", dataIndex: "subject", ellipsis: true, width: 550 },
 
         { title: "Claim Number", dataIndex: "claim_number", width: 150 },
-        {
-            title: "JSON",
-            render: (_, r) => (
-                <InfoCircleOutlined
-                    style={{ cursor: "pointer", color: "#1677ff" }}
-                    onClick={() => {
-                        setSelectedJson(r.__full);
-                        setJsonModalOpen(true);
-                    }}
-                />
-            ),
-            width: 80,
-        },
+        // {
+        //     title: "JSON",
+        //     render: (_, r) => (
+        //         <InfoCircleOutlined
+        //             style={{ cursor: "pointer", color: "#1677ff" }}
+        //             onClick={() => {
+        //                 setSelectedJson(r.__full);
+        //                 setJsonModalOpen(true);
+        //             }}
+        //         />
+        //     ),
+        //     width: 80,
+        // },
         {
             title: "Summary",
             render: (_, r) => (
