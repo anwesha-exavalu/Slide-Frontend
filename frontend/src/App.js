@@ -23,11 +23,11 @@ const MyMenu = ({ collapsed }) => {
 
   const pathToKey = {
     '/dashboard': '1',
+ '/mortgage': '2',
+    '/email': '3',
 
-    '/email': '2',
-
-    '/document-processing': '3',
-    '/mortgage': '4',
+   
+   
   };
 
   return (
@@ -41,10 +41,13 @@ const MyMenu = ({ collapsed }) => {
       <Menu.Item key="1" icon={<FileTextOutlined />} title={"Dashboard"}>
         {!collapsed ? <Link to="/dashboard" style={{ textDecoration: 'none' }}>IDP</Link> : <Link to="/dashboard" style={{ textDecoration: 'none' }} />}
       </Menu.Item>
-      <Menu.Item key="2" icon={<MailOutlined />} title={"Email"}>
+        <Menu.Item key="2" icon={<FileTextOutlined />} title={"Mortgage Letter"}>
+        {!collapsed ? <Link to="/mortgage" style={{ textDecoration: 'none' }}>Mortgage Letter</Link> : <Link to="/mortgage" style={{ textDecoration: 'none' }} />}
+      </Menu.Item>
+      <Menu.Item key="3" icon={<MailOutlined />} title={"Email"}>
         {!collapsed ? <Link to="/email" style={{ textDecoration: 'none' }}>Email</Link> : <Link to="/email" style={{ textDecoration: 'none' }} />}
       </Menu.Item>
-      <Menu.Item
+      {/* <Menu.Item
         key="3"
         icon={<FileTextOutlined />}
         title={"IDP-Document Intelligence"}
@@ -56,11 +59,9 @@ const MyMenu = ({ collapsed }) => {
         ) : (
           <Link to="/document-processing" style={{ textDecoration: 'none' }} />
         )}
-      </Menu.Item>
+      </Menu.Item> */}
 
-      <Menu.Item key="4" icon={<FileTextOutlined />} title={"Mortgage Letter"}>
-        {!collapsed ? <Link to="/mortgage" style={{ textDecoration: 'none' }}>Mortgage Letter</Link> : <Link to="/mortgage" style={{ textDecoration: 'none' }} />}
-      </Menu.Item>
+    
     </Menu>
   );
 };
