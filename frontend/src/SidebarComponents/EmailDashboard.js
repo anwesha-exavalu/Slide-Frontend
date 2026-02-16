@@ -182,6 +182,7 @@ const EmailDashboard = () => {
                     const json = await res.json();
                     const email = json.email || {};
                     const ui = json.ui || {};
+                  
 
                     return {
                         blobName: b.name,
@@ -195,6 +196,7 @@ const EmailDashboard = () => {
                         claim_number: ui.claimNumber,
                         summary: ui.detailedSummary,
                         email_body: email.email_body,
+                        signature: ui.email_signature,
 
                         /* ✅ NEW (NON-BREAKING) */
                         attachments: ui.attachments || [],
@@ -264,6 +266,7 @@ const EmailDashboard = () => {
         //     width: 120,
         // },
         { title: "Sender Email ID", dataIndex: "from", ellipsis: true, width: 280 },
+         { title: "Email Signature", dataIndex: "signature", ellipsis: true, width: 200 },
         { title: "Date and Time", dataIndex: "received_at", ellipsis: true, width: 220 },
         { title: "Subject", dataIndex: "subject", ellipsis: true, width: 550 },
 
