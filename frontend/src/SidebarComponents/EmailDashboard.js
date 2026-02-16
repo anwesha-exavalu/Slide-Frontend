@@ -182,6 +182,7 @@ const EmailDashboard = () => {
                     const json = await res.json();
                     const email = json.email || {};
                     const ui = json.ui || {};
+                    const model = json.model || {};
                   
 
                     return {
@@ -196,7 +197,7 @@ const EmailDashboard = () => {
                         claim_number: ui.claimNumber,
                         summary: ui.detailedSummary,
                         email_body: email.email_body,
-                        signature: ui.email_signature,
+                        signature: ui.email_signature || model.email_signature,
 
                         /* ✅ NEW (NON-BREAKING) */
                         attachments: ui.attachments || [],
@@ -266,24 +267,24 @@ const EmailDashboard = () => {
         //     width: 120,
         // },
         { title: "Sender Email ID", dataIndex: "from", ellipsis: true, width: 280 },
-         { title: "Email Signature", dataIndex: "signature", ellipsis: true, width: 200 },
+         { title: "Sender Name", dataIndex: "signature", ellipsis: true, width: 200 },
         { title: "Date and Time", dataIndex: "received_at", ellipsis: true, width: 220 },
         { title: "Subject", dataIndex: "subject", ellipsis: true, width: 550 },
 
         { title: "Claim Number", dataIndex: "claim_number", width: 150 },
-        // {
-        //     title: "JSON",
-        //     render: (_, r) => (
-        //         <InfoCircleOutlined
-        //             style={{ cursor: "pointer", color: "#1677ff" }}
-        //             onClick={() => {
-        //                 setSelectedJson(r.__full);
-        //                 setJsonModalOpen(true);
-        //             }}
-        //         />
-        //     ),
-        //     width: 80,
-        // },
+        {
+            title: "JSON",
+            render: (_, r) => (
+                <InfoCircleOutlined
+                    style={{ cursor: "pointer", color: "#1677ff" }}
+                    onClick={() => {
+                        setSelectedJson(r.__full);
+                        setJsonModalOpen(true);
+                    }}
+                />
+            ),
+            width: 80,
+        },
         {
             title: "Summary",
             render: (_, r) => (
