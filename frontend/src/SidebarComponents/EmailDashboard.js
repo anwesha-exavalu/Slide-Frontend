@@ -18,22 +18,22 @@ import { Checkbox } from "antd";
 /* =========================
    AZURE CONFIG (UNCHANGED)
 ========================= */
-const ACCOUNT = "mailstorage1";
-const CONTAINER = "mailstorageprocessed";
+const ACCOUNT = "exavalustrgacc";
+const CONTAINER = "mail-processed";
 
 /* Existing SAS – DO NOT TOUCH */
 const SAS_TOKEN =
-    "sp=rl&st=2026-02-09T17:17:20Z&se=2026-03-13T01:32:20Z&sv=2024-11-04&sr=c&sig=VDsjk%2BnJRa5WnNo7zPFOwV0yJ8lHwcbIpgV5LNIr0eQ%3D";
+    "sp=rl&st=2026-02-17T14:30:11Z&se=2026-02-19T22:45:11Z&sv=2024-11-04&sr=c&sig=%2FckrZpUPN%2BEFicL1bAvvtgzeFyqbcPVoskGZoFgRdv4%3D";
 
 const POLL_MS = 10000;
 
 /* =========================
    NEW: RAW CONTAINER (ADD ONLY)
 ========================= */
-const RAW_CONTAINER = "mailstorage1";
+const RAW_CONTAINER = "mail-storage";
 
 /* Separate SAS for attachments ONLY */
-const RAW_SAS = "sp=r&st=2026-02-09T17:14:12Z&se=2026-03-13T01:29:12Z&sv=2024-11-04&sr=c&sig=9CIGWlOc%2Fm%2FsQgGmoGC45n%2FHtTQLu4jKxKGUtBsYUvg%3D";
+const RAW_SAS = "sp=rl&st=2026-02-17T14:16:48Z&se=2026-02-19T22:31:48Z&sv=2024-11-04&sr=c&sig=J%2FWGukFbddYLIcbvVqQHCk5eVNDXBUiWRrsOJaTrqVE%3D";
 
 /* =========================
    HELPERS (PREVIOUS + NEW)
