@@ -18,12 +18,12 @@ import { Checkbox } from "antd";
 /* =========================
    AZURE CONFIG (UNCHANGED)
 ========================= */
-const ACCOUNT = "strexavalupublic";
+const ACCOUNT = "exavalustorageacct";
 const CONTAINER = "mail-processed";
 
 /* Existing SAS – DO NOT TOUCH */
 const SAS_TOKEN =
-    "sp=rwl&st=2026-02-23T13:13:26Z&se=2026-02-26T21:28:26Z&sv=2024-11-04&sr=c&sig=gwXujsyiQc2hMhw%2BuG1Uso0cgf4oDMPPUuBhxjylp9I%3D";
+    "sp=rwl&st=2026-02-24T11:41:30Z&se=2026-02-26T19:56:30Z&sv=2024-11-04&sr=c&sig=JFhuUfFoRAmbML05xCnVN%2BbrBJGR7x2axFPt%2FGa6GLk%3D";
 
 const POLL_MS = 10000;
 
@@ -33,7 +33,7 @@ const POLL_MS = 10000;
 const RAW_CONTAINER = "mail-storage";
 
 /* Separate SAS for attachments ONLY */
-const RAW_SAS = "sp=rwl&st=2026-02-23T13:11:22Z&se=2026-02-26T21:26:22Z&sv=2024-11-04&sr=c&sig=vsRDpFVfbLKiFEkEeYKUXYCmPSLnA3AiwSOLeocBqBo%3D";
+const RAW_SAS = "sp=rwl&st=2026-02-24T11:39:13Z&se=2026-02-26T19:54:13Z&sv=2024-11-04&sr=c&sig=NG%2B654M5VwiJRlV%2BwyA0F7WIGYYAuNDsFO%2BI110C4T4%3D";
 
 /* =========================
    HELPERS (PREVIOUS + NEW)
