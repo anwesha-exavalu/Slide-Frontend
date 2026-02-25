@@ -94,7 +94,27 @@ const MyTableComponent = ({ columns, dataSource, loading }) => {
         </TableContainer>
     );
 };
+const scrollCellStyle = {
+    maxHeight: 60,
+    overflowX: "auto",
+    whiteSpace: "normal",
+    wordBreak: "break-word",
+};
+const formatDateTime = (value) => {
+    if (!value) return "";
 
+    const date = new Date(value);
+
+    return date.toLocaleString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+    });
+};
 /* =========================
    EMAIL DASHBOARD
 ========================= */
@@ -183,7 +203,7 @@ const EmailDashboard = () => {
                     const email = json.email || {};
                     const ui = json.ui || {};
                     const model = json.model || {};
-                  
+
 
                     return {
                         blobName: b.name,
@@ -242,51 +262,90 @@ const EmailDashboard = () => {
         const t = setInterval(poll, POLL_MS);
         return () => clearInterval(t);
     }, []);
+    const getColumnFilters = (dataIndex) => {
+        const uniqueValues = Array.from(
+            new Set(rows.map((r) => r[dataIndex]).filter(Boolean))
+        );
 
+        return uniqueValues.map((val) => ({
+            text: val,
+            value: val,
+        }));
+    };
     /* =========================
        COLUMNS (UNCHANGED)
     ========================= */
     const columns = [
         {
             title: "Email Type",
+            dataIndex: "classification",
             width: 260,
-            render: (_, r) => (
-
-
-                <div style={{ fontSize: 14 }}>
-                    {r.classification || " "}
-                </div>
-
+            filters: getColumnFilters("classification"),
+            onFilter: (value, record) =>
+                record.classification === value,
+            render: (text) => (
+                <div style={scrollCellStyle}>{text}</div>
             ),
         },
-
-        // {
-        //     title: "Submission ID",
-        //     dataIndex: "email_id",
-        //     render: getSubmissionId,
-        //     width: 120,
-        // },
-        { title: "Sender Email ID", dataIndex: "from", ellipsis: true, width: 280 },
-         { title: "Sender Name", dataIndex: "signature", ellipsis: true, width: 200 },
-        { title: "Date and Time", dataIndex: "received_at", ellipsis: true, width: 220 },
-        { title: "Subject", dataIndex: "subject", ellipsis: true, width: 550 },
-
-        { title: "Claim Number", dataIndex: "claim_number", width: 150 },
-        // {
-        //     title: "JSON",
-        //     render: (_, r) => (
-        //         <InfoCircleOutlined
-        //             style={{ cursor: "pointer", color: "#1677ff" }}
-        //             onClick={() => {
-        //                 setSelectedJson(r.__full);
-        //                 setJsonModalOpen(true);
-        //             }}
-        //         />
-        //     ),
-        //     width: 80,
-        // },
+        {
+            title: "Sender Email ID",
+            dataIndex: "from",
+            width: 280,
+            filters: getColumnFilters("from"),
+            onFilter: (value, record) =>
+                record.from === value,
+            render: (text) => (
+                <div style={scrollCellStyle}>{text}</div>
+            ),
+        },
+        {
+            title: "Sender Name",
+            dataIndex: "signature",
+            width: 200,
+            filters: getColumnFilters("signature"),
+            onFilter: (value, record) =>
+                record.signature === value,
+            render: (text) => (
+                <div style={scrollCellStyle}>{text}</div>
+            ),
+        },
+        {
+            title: "Date and Time",
+            dataIndex: "received_at",
+            width: 250,
+            sorter: (a, b) =>
+                new Date(a.received_at) - new Date(b.received_at),
+            render: (text) => (
+                <div style={scrollCellStyle}>
+                    {formatDateTime(text)}
+                </div>
+            ),
+        },
+        {
+            title: "Subject",
+            dataIndex: "subject",
+            width: 400,
+            filters: getColumnFilters("subject"),
+            onFilter: (value, record) =>
+                record.subject === value,
+            render: (text) => (
+                <div style={scrollCellStyle}>{text}</div>
+            ),
+        },
+        {
+            title: "Claim Number",
+            dataIndex: "claim_number",
+            width: 150,
+            filters: getColumnFilters("claim_number"),
+            onFilter: (value, record) =>
+                record.claim_number === value,
+            render: (text) => (
+                <div style={scrollCellStyle}>{text}</div>
+            ),
+        },
         {
             title: "Summary",
+            width: 120,
             render: (_, r) => (
                 <Button
                     size="small"
@@ -298,10 +357,10 @@ const EmailDashboard = () => {
                     View
                 </Button>
             ),
-            width: 120,
         },
         {
             title: "Source",
+            width: 120,
             render: (_, r) => (
                 <Button
                     size="small"
@@ -314,7 +373,6 @@ const EmailDashboard = () => {
                     View
                 </Button>
             ),
-            width: 120,
         },
         {
             title: "Attachments",
@@ -322,42 +380,36 @@ const EmailDashboard = () => {
             width: 350,
             render: (attachments = []) =>
                 attachments.length ? (
-                    <Space direction="vertical" size={0}>
-                        {attachments.map((a) => (
-                            <span key={a.blobPath} style={{ fontSize: 14 }}>
-                                <a
-                                    href="#!"
-                                    style={{ color: "#1677ff" }}
-                                    onClick={(e) => {
-                                        e.preventDefault();
-
-                                        const url = buildAttachmentUrl(a.blobPath);
-
-                                        // Same behavior as email modal
-                                        const link = document.createElement("a");
-                                        link.href = url;
-                                        link.download = a.name;
-                                        link.target = "_blank";
-                                        document.body.appendChild(link);
-                                        link.click();
-                                        document.body.removeChild(link);
-                                    }}
-                                >
-                                    {a.name}
-                                </a>
-                                {a.type ? ` (${a.type})` : ""}
-                            </span>
-                        ))}
-                    </Space>
+                    <div style={scrollCellStyle}>
+                        <Space direction="vertical" size={0}>
+                            {attachments.map((a) => (
+                                <span key={a.blobPath}>
+                                    <a
+                                        href="#!"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            const url = buildAttachmentUrl(a.blobPath);
+                                            const link = document.createElement("a");
+                                            link.href = url;
+                                            link.download = a.name;
+                                            link.target = "_blank";
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                        }}
+                                    >
+                                        {a.name}
+                                    </a>
+                                </span>
+                            ))}
+                        </Space>
+                    </div>
                 ) : (
                     "-"
                 ),
         },
-
-
         {
             title: "Review",
-            dataIndex: "review",
             width: 80,
             render: (_, r) => (
                 <Checkbox
@@ -371,9 +423,7 @@ const EmailDashboard = () => {
                 />
             ),
         },
-
     ];
-
     return (
         <Container>
             <MyTableComponent columns={columns} dataSource={rows} loading={loading} />
