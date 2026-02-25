@@ -67,7 +67,7 @@ const DashboardMortgage = () => {
   const [selectedJson, setSelectedJson] = useState(null);
 
   const [selectedSubmissionId, setSelectedSubmissionId] = useState(null);
-
+  const [fileList, setFileList] = useState([]);
   const hasFetchedRef = useRef(false);
   const detailsRef = useRef(null);
 
@@ -134,7 +134,7 @@ const DashboardMortgage = () => {
      Columns
   ========================= */
   const columns = [
-    { title: "Submission ID", dataIndex: "submission" },
+    { title: "SubmissionID", dataIndex: "submission", width: 120 },
     { title: "Submitted by", dataIndex: "submittedBy", width: 120 },
     { title: "Document", dataIndex: "document", width: 250 },
     { title: "Date", dataIndex: "date" },
@@ -306,71 +306,81 @@ const DashboardMortgage = () => {
 
                           </Row>
                         ))}
-                       
+
                       </div>
-                  
 
-                  </Col>
 
-                </Row>
+                    </Col>
+
+                  </Row>
                 </List.Item>
               )}
             />
-        </Card>
+          </Card>
         </div>
-  )
-}
-
-{/* Upload Modal */ }
-<Modal
-  title="Upload File"
-  open={isModalOpen}
-  onCancel={() => setIsModalOpen(false)}
-  footer={null}
->
-  <Upload.Dragger
-    customRequest={async ({ file, onSuccess, onError }) => {
-      try {
-        const BASE_URL = process.env.REACT_APP_AI_EXTRACT;
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const response = await fetch(
-          `${BASE_URL}/api/extract_document?template=mortgage`,
-          { method: "POST", body: formData }
-        );
-
-        const result = await response.json();
-        setApiData((prev) => [...prev, result]);
-        setSelectedSubmissionId(result.submission_id);
-        setIsModalOpen(false);
-        message.success("File processed successfully");
-        onSuccess();
-      } catch (err) {
-        message.error("Upload failed");
-        onError(err);
+      )
       }
-    }}
-  >
-    <p className="ant-upload-drag-icon">
-      <UploadOutlined />
-    </p>
-    <p>Click or drag file to upload</p>
-  </Upload.Dragger>
-</Modal>
 
-{/* JSON Modal */ }
-<Modal
-  title="LLM Response"
-  open={jsonModalOpen}
-  onCancel={() => setJsonModalOpen(false)}
-  footer={null}
-  width={900}
->
-  <pre style={{ maxHeight: 500, overflow: "auto" }}>
-    {JSON.stringify(selectedJson, null, 2)}
-  </pre>
-</Modal>
+      {/* Upload Modal */}
+      <Modal
+        title="Upload File"
+        open={isModalOpen}
+        onCancel={() => {
+          setIsModalOpen(false);
+          setFileList([]);
+        }}
+        footer={null}
+      >
+        <Upload.Dragger
+          fileList={fileList}
+          onChange={({ fileList }) => setFileList(fileList)}
+          onRemove={() => setFileList([])}
+          customRequest={async ({ file, onSuccess, onError }) => {
+            try {
+              const BASE_URL = process.env.REACT_APP_AI_EXTRACT;
+              const formData = new FormData();
+              formData.append("file", file);
+
+              const response = await fetch(
+                `${BASE_URL}/api/extract_document?template=wind_mit`,
+                { method: "POST", body: formData }
+              );
+
+              const result = await response.json();
+
+              setApiData((prev) => [...prev, result]);
+              setSelectedSubmissionId(result.submission_id);
+
+              setFileList([]);        // ✅ Clear file after upload
+              setIsModalOpen(false);
+
+              message.success("File processed successfully");
+              onSuccess();
+            } catch (err) {
+              message.error("Upload failed");
+              onError(err);
+            }
+          }}
+        >
+          <p className="ant-upload-drag-icon">
+            <UploadOutlined />
+          </p>
+          <p>Click or drag file to upload</p>
+        </Upload.Dragger>
+      </Modal>
+
+      {/* JSON Modal */}
+      <Modal
+        title="LLM Response"
+        open={jsonModalOpen}
+        onCancel={() => setJsonModalOpen(false)}
+        footer={null}
+        width={900}
+      >
+        <pre style={{ maxHeight: 500, overflow: "auto" }}>
+          {JSON.stringify(selectedJson, null, 2)}
+        </pre>
+      </Modal>
     </Container >
   );
 };

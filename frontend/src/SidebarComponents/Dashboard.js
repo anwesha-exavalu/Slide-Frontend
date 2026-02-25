@@ -63,7 +63,7 @@ const Dashboard = () => {
   const [selectedJson, setSelectedJson] = useState(null);
 
   const [selectedSubmissionId, setSelectedSubmissionId] = useState(null);
-
+  const [fileList, setFileList] = useState([]);
   const hasFetchedRef = useRef(false);
   const detailsRef = useRef(null);
 
@@ -133,7 +133,7 @@ const Dashboard = () => {
      Columns
   ========================= */
   const columns = [
-    { title: "Submission ID", dataIndex: "submission" },
+    { title: "SubmissionID", dataIndex: "submission" ,  width: 120},
     { title: "Submitted by", dataIndex: "submittedBy", width: 120 },
     { title: "Document", dataIndex: "document", width: 250 },
     { title: "Date", dataIndex: "date" },
@@ -300,10 +300,16 @@ const Dashboard = () => {
       <Modal
         title="Upload File"
         open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
+        onCancel={() => {
+          setIsModalOpen(false);
+          setFileList([]);
+        }}
         footer={null}
       >
         <Upload.Dragger
+          fileList={fileList}
+          onChange={({ fileList }) => setFileList(fileList)}
+          onRemove={() => setFileList([])}
           customRequest={async ({ file, onSuccess, onError }) => {
             try {
               const BASE_URL = process.env.REACT_APP_AI_EXTRACT;
@@ -316,9 +322,13 @@ const Dashboard = () => {
               );
 
               const result = await response.json();
+
               setApiData((prev) => [...prev, result]);
               setSelectedSubmissionId(result.submission_id);
+
+              setFileList([]);        // ✅ Clear file after upload
               setIsModalOpen(false);
+
               message.success("File processed successfully");
               onSuccess();
             } catch (err) {
