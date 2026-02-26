@@ -374,7 +374,7 @@ const EmailDashboard = () => {
                 </Button>
             ),
         },
-            {
+        {
             title: "JSON",
             render: (_, r) => (
                 <InfoCircleOutlined
@@ -387,40 +387,40 @@ const EmailDashboard = () => {
             ),
             width: 80,
         },
-               {
+        {
             title: "Attachments",
             dataIndex: "attachments",
             width: 350,
             render: (attachments = []) =>
                 attachments.length ? (
                     <div style={scrollCellStyle}>
-                    <Space direction="vertical" size={0}>
-                        {attachments.map((a) => (
-                            <span key={a.blobPath} style={{ fontSize: 14 }}>
-                                <a
-                                    href="#!"
-                                    style={{ color: "#1677ff" }}
-                                    onClick={(e) => {
-                                        e.preventDefault();
- 
-                                        const url = buildAttachmentUrl(a.blobPath);
- 
-                                        // Same behavior as email modal
-                                        const link = document.createElement("a");
-                                        link.href = url;
-                                        link.download = a.name;
-                                        link.target = "_blank";
-                                        document.body.appendChild(link);
-                                        link.click();
-                                        document.body.removeChild(link);
-                                    }}
-                                >
-                                    {a.name}
-                                </a>
-                                {a.type ? ` (${a.type})` : ""}
-                            </span>
-                        ))}
-                    </Space>
+                        <Space direction="vertical" size={0}>
+                            {attachments.map((a) => (
+                                <span key={a.blobPath} style={{ fontSize: 14 }}>
+                                    <a
+                                        href="#!"
+                                        style={{ color: "#1677ff" }}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+
+                                            const url = buildAttachmentUrl(a.blobPath);
+
+                                            // Same behavior as email modal
+                                            const link = document.createElement("a");
+                                            link.href = url;
+                                            link.download = a.name;
+                                            link.target = "_blank";
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                        }}
+                                    >
+                                        {a.name}
+                                    </a>
+                                    {a.type ? ` (${a.type})` : ""}
+                                </span>
+                            ))}
+                        </Space>
                     </div>
                 ) : (
                     "-"
@@ -601,11 +601,40 @@ const EmailDashboard = () => {
 
             {/* ================= SUMMARY MODAL ================= */}
             <Modal
+                title="Summary"
                 open={summaryModalOpen}
                 onCancel={() => setSummaryModalOpen(false)}
                 footer={null}
+                width={800}
             >
-                {selectedSummary}
+                <div style={{ lineHeight: 1.8, fontSize: 14 }}>
+                    {selectedSummary &&
+                        selectedSummary.split("\n\n").map((section, index) => {
+                            const lines = section.split("\n");
+                            const title = lines[0];
+                            const items = lines.slice(1);
+
+                            return (
+                                <div key={index} style={{ marginBottom: 20 }}>
+                                    {/* Section Title */}
+                                    <div style={{ fontWeight: 600, fontSize: 15 }}>
+                                        {title}
+                                    </div>
+
+                                    {/* Bullet Points */}
+                                    {items.length > 0 && (
+                                        <ul style={{ paddingLeft: 20, marginTop: 8 }}>
+                                            {items.map((item, i) => (
+                                                <li key={i}>
+                                                    {item.replace(/^- /, "")}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+                            );
+                        })}
+                </div>
             </Modal>
         </Container>
     );
