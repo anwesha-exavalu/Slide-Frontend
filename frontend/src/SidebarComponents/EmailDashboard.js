@@ -18,12 +18,12 @@ import { Checkbox } from "antd";
 /* =========================
    AZURE CONFIG (UNCHANGED)
 ========================= */
-const ACCOUNT = "exavalustorageacct";
+const ACCOUNT = "strexavalupublic";
 const CONTAINER = "mail-processed";
 
 /* Existing SAS – DO NOT TOUCH */
 const SAS_TOKEN =
-    "sp=rwl&st=2026-02-24T11:41:30Z&se=2026-02-26T19:56:30Z&sv=2024-11-04&sr=c&sig=JFhuUfFoRAmbML05xCnVN%2BbrBJGR7x2axFPt%2FGa6GLk%3D";
+    "sp=rwl&st=2026-02-26T05:46:26Z&se=2026-02-28T14:01:26Z&sv=2024-11-04&sr=c&sig=Xhi%2BQpOAntZ%2FmHxAdI%2B%2FxRxoudjkSI%2F9fw7gXVqWle8%3D";
 
 const POLL_MS = 10000;
 
@@ -33,7 +33,7 @@ const POLL_MS = 10000;
 const RAW_CONTAINER = "mail-storage";
 
 /* Separate SAS for attachments ONLY */
-const RAW_SAS = "sp=rwl&st=2026-02-24T11:39:13Z&se=2026-02-26T19:54:13Z&sv=2024-11-04&sr=c&sig=NG%2B654M5VwiJRlV%2BwyA0F7WIGYYAuNDsFO%2BI110C4T4%3D";
+const RAW_SAS = "sp=rwl&st=2026-02-26T05:49:58Z&se=2026-02-28T14:04:58Z&sv=2024-11-04&sr=c&sig=Zb2N4phvH4bhPiwrtda3tbroJBfH0LGj%2FHRaLAC%2FkaU%3D";
 
 /* =========================
    HELPERS (PREVIOUS + NEW)
@@ -373,6 +373,19 @@ const EmailDashboard = () => {
                     View
                 </Button>
             ),
+        },
+            {
+            title: "JSON",
+            render: (_, r) => (
+                <InfoCircleOutlined
+                    style={{ cursor: "pointer", color: "#1677ff" }}
+                    onClick={() => {
+                        setSelectedJson(r.__full);
+                        setJsonModalOpen(true);
+                    }}
+                />
+            ),
+            width: 80,
         },
         {
             title: "Attachments",
