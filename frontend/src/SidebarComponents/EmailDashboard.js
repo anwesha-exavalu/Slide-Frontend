@@ -387,35 +387,40 @@ const EmailDashboard = () => {
             ),
             width: 80,
         },
-        {
+               {
             title: "Attachments",
             dataIndex: "attachments",
             width: 350,
             render: (attachments = []) =>
                 attachments.length ? (
                     <div style={scrollCellStyle}>
-                        <Space direction="vertical" size={0}>
-                            {attachments.map((a) => (
-                                <span key={a.blobPath}>
-                                    <a
-                                        href="#!"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            const url = buildAttachmentUrl(a.blobPath);
-                                            const link = document.createElement("a");
-                                            link.href = url;
-                                            link.download = a.name;
-                                            link.target = "_blank";
-                                            document.body.appendChild(link);
-                                            link.click();
-                                            document.body.removeChild(link);
-                                        }}
-                                    >
-                                        {a.name}
-                                    </a>
-                                </span>
-                            ))}
-                        </Space>
+                    <Space direction="vertical" size={0}>
+                        {attachments.map((a) => (
+                            <span key={a.blobPath} style={{ fontSize: 14 }}>
+                                <a
+                                    href="#!"
+                                    style={{ color: "#1677ff" }}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+ 
+                                        const url = buildAttachmentUrl(a.blobPath);
+ 
+                                        // Same behavior as email modal
+                                        const link = document.createElement("a");
+                                        link.href = url;
+                                        link.download = a.name;
+                                        link.target = "_blank";
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                    }}
+                                >
+                                    {a.name}
+                                </a>
+                                {a.type ? ` (${a.type})` : ""}
+                            </span>
+                        ))}
+                    </Space>
                     </div>
                 ) : (
                     "-"
