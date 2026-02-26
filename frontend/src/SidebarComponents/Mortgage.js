@@ -342,7 +342,7 @@ const DashboardMortgage = () => {
               formData.append("file", file);
 
               const response = await fetch(
-                `${BASE_URL}/api/extract_document?template=wind_mit`,
+                `${BASE_URL}/api/extract_document?template=mortgage`,
                 { method: "POST", body: formData }
               );
 
