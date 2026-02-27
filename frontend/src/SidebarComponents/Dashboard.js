@@ -15,7 +15,10 @@ import {
 import {
   UploadOutlined,
   InfoCircleOutlined,
+  DownloadOutlined,
+  FileExcelOutlined,
 } from "@ant-design/icons";
+import * as XLSX from "xlsx";
 
 import "./Dashboard.css";
 import "./Table.css";
@@ -61,6 +64,9 @@ const Dashboard = () => {
 
   const [jsonModalOpen, setJsonModalOpen] = useState(false);
   const [selectedJson, setSelectedJson] = useState(null);
+
+  const [excelModalOpen, setExcelModalOpen] = useState(false);
+  const [selectedExcelData, setSelectedExcelData] = useState(null);
 
   const [selectedSubmissionId, setSelectedSubmissionId] = useState(null);
   const [fileList, setFileList] = useState([]);
@@ -114,6 +120,50 @@ const Dashboard = () => {
 
 
   /* =========================
+     Excel Helpers
+  ========================= */
+  const buildExcelRows = (json) => {
+    if (!json) return [];
+    const rows = [];
+    const fields = json.fields || {};
+    Object.entries(fields).forEach(([fieldName, data]) => {
+      const rawValue = data?.value;
+      const confidence = data?.confidence_score != null
+        ? `${Math.round(data.confidence_score * 100)}%`
+        : "—";
+      const page = data?.page ?? "—";
+
+      if (Array.isArray(rawValue)) {
+        rawValue.forEach((val, idx) => {
+          rows.push({
+            Field: fieldName,
+            Value: idx === 0 ? String(val ?? "") : String(val ?? ""),
+            "Confidence Score": idx === 0 ? confidence : "",
+            "Page": idx === 0 ? page : "",
+          });
+        });
+      } else {
+        rows.push({
+          Field: fieldName,
+          Value: String(rawValue ?? ""),
+          "Confidence Score": confidence,
+          "Page": page,
+        });
+      }
+    });
+    return rows;
+  };
+
+  const downloadExcel = (json, filename = "extracted_data.xlsx") => {
+    const rows = buildExcelRows(json);
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws["!cols"] = [{ wch: 30 }, { wch: 50 }, { wch: 18 }, { wch: 8 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Extracted Fields");
+    XLSX.writeFile(wb, filename);
+  };
+
+  /* =========================
      Table Data
   ========================= */
   const tableData = apiData.map((item) => ({
@@ -150,15 +200,16 @@ const Dashboard = () => {
         ),
     },
     {
-      title: "JSON",
+      title: "Excel",
       dataIndex: "json",
       render: (json) =>
         json ? (
           <Button
             type="link"
+            icon={<FileExcelOutlined style={{ color: "#217346" }} />}
             onClick={() => {
-              setSelectedJson(json);
-              setJsonModalOpen(true);
+              setSelectedExcelData(json);
+              setExcelModalOpen(true);
             }}
           >
             View
@@ -167,6 +218,24 @@ const Dashboard = () => {
           "—"
         ),
     },
+    // {
+    //   title: "JSON",
+    //   dataIndex: "json",
+    //   render: (json) =>
+    //     json ? (
+    //       <Button
+    //         type="link"
+    //         onClick={() => {
+    //           setSelectedJson(json);
+    //           setJsonModalOpen(true);
+    //         }}
+    //       >
+    //         View
+    //       </Button>
+    //     ) : (
+    //       "—"
+    //     ),
+    // },
     {
       title: "Output",
       dataIndex: "output",
@@ -344,8 +413,63 @@ const Dashboard = () => {
         </Upload.Dragger>
       </Modal>
 
-      {/* JSON Modal */}
+      {/* Excel Modal */}
       <Modal
+        title={
+          <Row justify="space-between" align="middle">
+            <Col><FileExcelOutlined style={{ color: "#217346", marginRight: 8 }} />Extracted Data (Excel Preview)</Col>
+            <Col>
+              <Button
+                type="primary"
+                icon={<DownloadOutlined />}
+                onClick={() => downloadExcel(selectedExcelData)}
+                style={{ marginRight: 24 }}
+              >
+                Download Excel
+              </Button>
+            </Col>
+          </Row>
+        }
+        open={excelModalOpen}
+        onCancel={() => setExcelModalOpen(false)}
+        footer={null}
+        width={860}
+      >
+        {selectedExcelData && (() => {
+          const rows = buildExcelRows(selectedExcelData);
+          const excelColumns = [
+            { title: "Field", dataIndex: "Field", key: "Field", width: 220,
+              onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } }) },
+            { title: "Value", dataIndex: "Value", key: "Value",
+              render: (val) => <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{val}</span>,
+              onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } }) },
+            { title: "Confidence Score", dataIndex: "Confidence Score", key: "conf", width: 140,
+              render: (val) => {
+                if (!val) return null;
+                const num = parseInt(val);
+                const color = num > 80 ? "green" : num > 50 ? "orange" : "red";
+                return <Tag color={color}>{val}</Tag>;
+              },
+              onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } }) },
+            { title: "Page", dataIndex: "Page", key: "page", width: 70,
+              render: (val) => val ? <Tag>{val}</Tag> : null,
+              onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } }) },
+          ];
+          return (
+            <Table
+              columns={excelColumns}
+              dataSource={rows.map((r, i) => ({ ...r, key: i }))}
+              pagination={{ pageSize: 15 }}
+              size="small"
+              bordered
+              scroll={{ y: 420 }}
+            />
+          );
+        })()}
+      </Modal>
+
+      {/* JSON Modal */}
+      {/* <Modal
         title="LLM Response"
         open={jsonModalOpen}
         onCancel={() => setJsonModalOpen(false)}
@@ -355,7 +479,7 @@ const Dashboard = () => {
         <pre style={{ maxHeight: 500, overflow: "auto" }}>
           {JSON.stringify(selectedJson, null, 2)}
         </pre>
-      </Modal>
+      </Modal> */}
     </Container>
   );
 };

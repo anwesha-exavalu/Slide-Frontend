@@ -15,7 +15,9 @@ import {
 import {
   UploadOutlined,
   InfoCircleOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
+import * as XLSX from "xlsx";
 
 import "./Dashboard.css";
 import "./Table.css";
@@ -63,8 +65,13 @@ const DashboardMortgage = () => {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // JSON modal state (kept but commented out from column — preserved below)
   const [jsonModalOpen, setJsonModalOpen] = useState(false);
   const [selectedJson, setSelectedJson] = useState(null);
+
+  // Excel modal state
+  const [excelModalOpen, setExcelModalOpen] = useState(false);
+  const [selectedExcelData, setSelectedExcelData] = useState(null); // { json, documentName }
 
   const [selectedSubmissionId, setSelectedSubmissionId] = useState(null);
   const [fileList, setFileList] = useState([]);
@@ -103,6 +110,7 @@ const DashboardMortgage = () => {
 
     fetchDocuments();
   }, []);
+
   useEffect(() => {
     if (selectedSubmissionId && detailsRef.current) {
       setTimeout(() => {
@@ -110,9 +118,69 @@ const DashboardMortgage = () => {
           behavior: "smooth",
           block: "start",
         });
-      }, 100); // small delay ensures render completes
+      }, 100);
     }
   }, [selectedSubmissionId]);
+
+  /* =========================
+     Excel Helper: Build flat rows from llm_response
+  ========================= */
+  const buildExcelRows = (json) => {
+    if (!json) return [];
+    const fields = json.fields || {};
+    const rows = [];
+
+    Object.entries(fields).forEach(([fieldName, values]) => {
+      const valueArray = Array.isArray(values) ? values : [];
+      if (valueArray.length === 0) {
+        rows.push({
+          "Field Name": fieldName,
+          Value: "",
+          "Confidence Score": "",
+          "Page Number": "",
+        });
+      } else {
+        valueArray.forEach((item, idx) => {
+          rows.push({
+            "Field Name": idx === 0 ? fieldName : "",
+            Value: item.value ?? "",
+            "Confidence Score":
+              item.confidence_score !== undefined
+                ? `${Math.round(item.confidence_score * 100)}%`
+                : "",
+            "Page Number": item.page ?? "",
+          });
+        });
+      }
+    });
+
+    return rows;
+  };
+
+  /* =========================
+     Excel Helper: Download xlsx file
+  ========================= */
+  const handleDownloadExcel = (json, documentName) => {
+    const rows = buildExcelRows(json);
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+
+    // Set column widths
+    worksheet["!cols"] = [
+      { wch: 30 }, // Field Name
+      { wch: 50 }, // Value
+      { wch: 18 }, // Confidence Score
+      { wch: 14 }, // Page Number
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Extracted Fields");
+
+    const fileName = documentName
+      ? `${documentName.replace(/\s+/g, "_")}_extracted.xlsx`
+      : "extracted_fields.xlsx";
+
+    XLSX.writeFile(workbook, fileName);
+  };
 
   /* =========================
      Table Data
@@ -127,6 +195,8 @@ const DashboardMortgage = () => {
       : "—",
     source: item.pdf_s3_uri,
     json: item.llm_response,
+    excelJson: item.llm_response,
+    documentName: item.llm_response?.metadata?.document_name || "extracted",
     output: item.submission_id,
   }));
 
@@ -150,6 +220,7 @@ const DashboardMortgage = () => {
           "—"
         ),
     },
+    /* ── JSON column (kept, commented out) ──────────────────────────
     {
       title: "JSON",
       dataIndex: "json",
@@ -160,6 +231,28 @@ const DashboardMortgage = () => {
             onClick={() => {
               setSelectedJson(json);
               setJsonModalOpen(true);
+            }}
+          >
+            View
+          </Button>
+        ) : (
+          "—"
+        ),
+    },
+    ─────────────────────────────────────────────────────────────── */
+    {
+      title: "Excel",
+      dataIndex: "excelJson",
+      render: (json, record) =>
+        json ? (
+          <Button
+            type="link"
+            onClick={() => {
+              setSelectedExcelData({
+                json,
+                documentName: record.documentName,
+              });
+              setExcelModalOpen(true);
             }}
           >
             View
@@ -202,6 +295,43 @@ const DashboardMortgage = () => {
     values: Array.isArray(values) ? values : [],
   }));
 
+  /* =========================
+     Excel Modal Preview Data
+  ========================= */
+  const excelPreviewRows = selectedExcelData
+    ? buildExcelRows(selectedExcelData.json)
+    : [];
+
+  const excelPreviewColumns = [
+    {
+      title: "Field Name",
+      dataIndex: "Field Name",
+      width: 200,
+      render: (text) => <strong>{text}</strong>,
+    },
+    {
+      title: "Value",
+      dataIndex: "Value",
+      width: 320,
+    },
+    {
+      title: "Confidence Score",
+      dataIndex: "Confidence Score",
+      width: 140,
+      render: (score) => {
+        if (!score) return "—";
+        const num = parseInt(score, 10);
+        const color = num > 80 ? "green" : num > 50 ? "orange" : "red";
+        return <Tag color={color}>{score}</Tag>;
+      },
+    },
+    {
+      title: "Page Number",
+      dataIndex: "Page Number",
+      width: 110,
+      render: (page) => (page !== "" && page !== undefined ? page : "—"),
+    },
+  ];
 
   /* =========================
      RENDER
@@ -266,14 +396,17 @@ const DashboardMortgage = () => {
                       <div
                         style={{
                           maxHeight: item.values.length > 4 ? 260 : "auto",
-                          overflowY: item.values.length > 4 ? "auto" : "visible",
+                          overflowY:
+                            item.values.length > 4 ? "auto" : "visible",
                           paddingRight: item.values.length > 4 ? 8 : 0,
                         }}
                       >
                         {item.values.map((fieldItem, index) => (
-
-                          <Row key={index} gutter={[16, 8]} style={{ marginBottom: 12 }}>
-
+                          <Row
+                            key={index}
+                            gutter={[16, 8]}
+                            style={{ marginBottom: 12 }}
+                          >
                             <Col span={14}>
                               {String(fieldItem.value || "").length > 120 ? (
                                 <Input.TextArea
@@ -292,34 +425,30 @@ const DashboardMortgage = () => {
                                   fieldItem.confidence_score > 0.8
                                     ? "green"
                                     : fieldItem.confidence_score > 0.5
-                                      ? "orange"
-                                      : "red"
+                                    ? "orange"
+                                    : "red"
                                 }
                               >
-                                Confidence: {Math.round((fieldItem.confidence_score || 0) * 100)}%
+                                Confidence:{" "}
+                                {Math.round(
+                                  (fieldItem.confidence_score || 0) * 100
+                                )}
+                                %
                               </Tag>
 
-                              <Tag>
-                                Page: {fieldItem.page ?? "—"}
-                              </Tag>
+                              <Tag>Page: {fieldItem.page ?? "—"}</Tag>
                             </Col>
-
                           </Row>
                         ))}
-
                       </div>
-
-
                     </Col>
-
                   </Row>
                 </List.Item>
               )}
             />
           </Card>
         </div>
-      )
-      }
+      )}
 
       {/* Upload Modal */}
       <Modal
@@ -351,7 +480,7 @@ const DashboardMortgage = () => {
               setApiData((prev) => [...prev, result]);
               setSelectedSubmissionId(result.submission_id);
 
-              setFileList([]);        // ✅ Clear file after upload
+              setFileList([]);
               setIsModalOpen(false);
 
               message.success("File processed successfully");
@@ -369,7 +498,7 @@ const DashboardMortgage = () => {
         </Upload.Dragger>
       </Modal>
 
-      {/* JSON Modal */}
+      {/* JSON Modal (kept, not triggered from table column) */}
       <Modal
         title="LLM Response"
         open={jsonModalOpen}
@@ -381,7 +510,52 @@ const DashboardMortgage = () => {
           {JSON.stringify(selectedJson, null, 2)}
         </pre>
       </Modal>
-    </Container >
+
+      {/* Excel Preview Modal */}
+      <Modal
+        title="Extracted Fields — Excel Preview"
+        open={excelModalOpen}
+        onCancel={() => {
+          setExcelModalOpen(false);
+          setSelectedExcelData(null);
+        }}
+        width={900}
+        footer={[
+          <Button
+            key="download"
+            type="primary"
+            icon={<DownloadOutlined />}
+            onClick={() =>
+              handleDownloadExcel(
+                selectedExcelData?.json,
+                selectedExcelData?.documentName
+              )
+            }
+          >
+            Download Excel
+          </Button>,
+          <Button
+            key="close"
+            onClick={() => {
+              setExcelModalOpen(false);
+              setSelectedExcelData(null);
+            }}
+          >
+            Close
+          </Button>,
+        ]}
+      >
+        <Table
+          rowKey={(_, index) => index}
+          columns={excelPreviewColumns}
+          dataSource={excelPreviewRows}
+          pagination={{ pageSize: 10 }}
+          bordered
+          size="small"
+          scroll={{ x: 780 }}
+        />
+      </Modal>
+    </Container>
   );
 };
 
