@@ -16,6 +16,7 @@ import {
   UploadOutlined,
   InfoCircleOutlined,
   DownloadOutlined,
+  FileExcelOutlined
 } from "@ant-design/icons";
 import * as XLSX from "xlsx";
 
@@ -33,7 +34,12 @@ import useMetaData from "../context/metaData";
 /* =========================
    Table Wrapper (UNCHANGED)
 ========================= */
-const MyTableComponent = ({ columns, dataSource, loading }) => {
+const MyTableComponent = ({
+  columns,
+  dataSource,
+  loading,
+  selectedSubmissionId,
+}) => {
   const { theme } = useMetaData();
 
   return (
@@ -45,6 +51,15 @@ const MyTableComponent = ({ columns, dataSource, loading }) => {
         dataSource={dataSource}
         loading={loading}
         pagination={{ pageSize: 5 }}
+        onRow={(record) => ({
+          style:
+            record.key === selectedSubmissionId
+              ? {
+                backgroundColor: "#e6f4ff",
+                transition: "background-color 0.3s ease",
+              }
+              : {},
+        })}
         components={{
           header: {
             cell: (props) => (
@@ -247,6 +262,7 @@ const DashboardMortgage = () => {
         json ? (
           <Button
             type="link"
+            icon={<FileExcelOutlined style={{ color: "#217346" }} />}
             onClick={() => {
               setSelectedExcelData({
                 json,
@@ -342,6 +358,7 @@ const DashboardMortgage = () => {
         columns={columns}
         dataSource={tableData}
         loading={loading}
+        selectedSubmissionId={selectedSubmissionId}
       />
 
       <Row>
@@ -425,8 +442,8 @@ const DashboardMortgage = () => {
                                   fieldItem.confidence_score > 0.8
                                     ? "green"
                                     : fieldItem.confidence_score > 0.5
-                                    ? "orange"
-                                    : "red"
+                                      ? "orange"
+                                      : "red"
                                 }
                               >
                                 Confidence:{" "}
@@ -461,8 +478,32 @@ const DashboardMortgage = () => {
         footer={null}
       >
         <Upload.Dragger
+          accept=".pdf"
+          multiple={false}
+          maxCount={1}
           fileList={fileList}
-          onChange={({ fileList }) => setFileList(fileList)}
+          beforeUpload={(file) => {
+            // Block if one file already exists
+            if (fileList.length >= 1) {
+              message.error("Multiple files can't be uploaded");
+              return Upload.LIST_IGNORE;
+            }
+
+            // Allow only PDF
+            const isPDF = file.type === "application/pdf";
+            if (!isPDF) {
+              message.error("Only PDF files are allowed");
+              return Upload.LIST_IGNORE;
+            }
+
+            return true;
+          }}
+          onChange={({ fileList }) => {
+            // Do NOT auto-replace existing file
+            if (fileList.length <= 1) {
+              setFileList(fileList);
+            }
+          }}
           onRemove={() => setFileList([])}
           customRequest={async ({ file, onSuccess, onError }) => {
             try {
@@ -471,8 +512,11 @@ const DashboardMortgage = () => {
               formData.append("file", file);
 
               const response = await fetch(
-                `${BASE_URL}/api/extract_document?template=mortgage`,
-                { method: "POST", body: formData }
+                `${BASE_URL}/api/extract_document?template=mortgage}`,
+                {
+                  method: "POST",
+                  body: formData,
+                }
               );
 
               const result = await response.json();
@@ -483,7 +527,7 @@ const DashboardMortgage = () => {
               setFileList([]);
               setIsModalOpen(false);
 
-              message.success("File processed successfully");
+              message.success("PDF processed successfully");
               onSuccess();
             } catch (err) {
               message.error("Upload failed");
@@ -494,7 +538,7 @@ const DashboardMortgage = () => {
           <p className="ant-upload-drag-icon">
             <UploadOutlined />
           </p>
-          <p>Click or drag file to upload</p>
+          <p>Click or drag PDF file to upload</p>
         </Upload.Dragger>
       </Modal>
 
@@ -512,47 +556,96 @@ const DashboardMortgage = () => {
       </Modal>
 
       {/* Excel Preview Modal */}
+      {/* Excel Modal — EXACT SAME DESIGN AS DASHBOARD */}
       <Modal
-        title="Extracted Fields — Excel Preview"
+        title={
+          <Row justify="space-between" align="middle">
+            <Col>
+              <FileExcelOutlined
+                style={{ color: "#217346", marginRight: 8 }}
+              />
+              Extracted Data (Excel Preview)
+            </Col>
+            <Col>
+              <Button
+                type="primary"
+                icon={<DownloadOutlined />}
+                onClick={() =>
+                  handleDownloadExcel(
+                    selectedExcelData?.json,
+                    selectedExcelData?.documentName
+                  )
+                }
+                style={{ marginRight: 24 }}
+              >
+                Download Excel
+              </Button>
+            </Col>
+          </Row>
+        }
         open={excelModalOpen}
         onCancel={() => {
           setExcelModalOpen(false);
           setSelectedExcelData(null);
         }}
-        width={900}
-        footer={[
-          <Button
-            key="download"
-            type="primary"
-            icon={<DownloadOutlined />}
-            onClick={() =>
-              handleDownloadExcel(
-                selectedExcelData?.json,
-                selectedExcelData?.documentName
-              )
-            }
-          >
-            Download Excel
-          </Button>,
-          <Button
-            key="close"
-            onClick={() => {
-              setExcelModalOpen(false);
-              setSelectedExcelData(null);
-            }}
-          >
-            Close
-          </Button>,
-        ]}
+        footer={null}
+        width={860}
       >
         <Table
-          rowKey={(_, index) => index}
-          columns={excelPreviewColumns}
-          dataSource={excelPreviewRows}
-          pagination={{ pageSize: 10 }}
-          bordered
+          columns={[
+            {
+              title: "Field Name",
+              dataIndex: "Field Name",
+              width: 220,
+              onHeaderCell: () => ({
+                style: { backgroundColor: "#217346", color: "#fff" },
+              }),
+            },
+            {
+              title: "Value",
+              dataIndex: "Value",
+              render: (val) => (
+                <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                  {val}
+                </span>
+              ),
+              onHeaderCell: () => ({
+                style: { backgroundColor: "#217346", color: "#fff" },
+              }),
+            },
+            {
+              title: "Confidence Score",
+              dataIndex: "Confidence Score",
+              width: 140,
+              render: (val) => {
+                if (!val) return null;
+                const num = parseInt(val);
+                const color =
+                  num > 80 ? "green" : num > 50 ? "orange" : "red";
+                return <Tag color={color}>{val}</Tag>;
+              },
+              onHeaderCell: () => ({
+                style: { backgroundColor: "#217346", color: "#fff" },
+              }),
+            },
+            {
+              title: "Page Number",
+              dataIndex: "Page Number",
+              width: 90,
+              render: (val) => (val ? <Tag>{val}</Tag> : null),
+              onHeaderCell: () => ({
+                style: { backgroundColor: "#217346", color: "#fff" },
+              }),
+            },
+          ]}
+          dataSource={excelPreviewRows.map((r, i) => ({
+            ...r,
+            key: i,
+          }))}
+          pagination={{ pageSize: 15 }}
           size="small"
-          scroll={{ x: 780 }}
+          bordered
+          scroll={{ y: 420 }}
         />
       </Modal>
     </Container>

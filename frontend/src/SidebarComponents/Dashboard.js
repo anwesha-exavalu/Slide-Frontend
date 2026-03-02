@@ -30,7 +30,12 @@ import useMetaData from "../context/metaData";
 /* =========================
    Table Wrapper (UNCHANGED)
 ========================= */
-const MyTableComponent = ({ columns, dataSource, loading }) => {
+const MyTableComponent = ({
+  columns,
+  dataSource,
+  loading,
+  selectedSubmissionId,
+}) => {
   const { theme } = useMetaData();
 
   return (
@@ -42,6 +47,15 @@ const MyTableComponent = ({ columns, dataSource, loading }) => {
         dataSource={dataSource}
         loading={loading}
         pagination={{ pageSize: 5 }}
+        onRow={(record) => ({
+          style:
+            record.key === selectedSubmissionId
+              ? {
+                backgroundColor: "#e6f4ff",
+                transition: "background-color 0.3s ease",
+              }
+              : {},
+        })}
         components={{
           header: {
             cell: (props) => (
@@ -154,7 +168,7 @@ const Dashboard = () => {
     return rows;
   };
 
-  const downloadExcel = (json, filename = "extracted_data.xlsx") => {
+  const downloadExcel = (json, filename = `${json?.metadata?.document_name?.replace(/\s+/g, "_")}_extracted.xlsx`) => {
     const rows = buildExcelRows(json);
     const ws = XLSX.utils.json_to_sheet(rows);
     ws["!cols"] = [{ wch: 30 }, { wch: 50 }, { wch: 18 }, { wch: 8 }];
@@ -183,7 +197,7 @@ const Dashboard = () => {
      Columns
   ========================= */
   const columns = [
-    { title: "SubmissionID", dataIndex: "submission" ,  width: 120},
+    { title: "SubmissionID", dataIndex: "submission", width: 120 },
     { title: "Submitted by", dataIndex: "submittedBy", width: 120 },
     { title: "Document", dataIndex: "document", width: 250 },
     { title: "Date", dataIndex: "date" },
@@ -279,6 +293,7 @@ const Dashboard = () => {
         columns={columns}
         dataSource={tableData}
         loading={loading}
+        selectedSubmissionId={selectedSubmissionId}
       />
 
       <Row>
@@ -376,8 +391,32 @@ const Dashboard = () => {
         footer={null}
       >
         <Upload.Dragger
+          accept=".pdf"
+          multiple={false}
+          maxCount={1}
           fileList={fileList}
-          onChange={({ fileList }) => setFileList(fileList)}
+          beforeUpload={(file) => {
+            // Block if one file already exists
+            if (fileList.length >= 1) {
+              message.error("Multiple files can't be uploaded");
+              return Upload.LIST_IGNORE;
+            }
+
+            // Allow only PDF
+            const isPDF = file.type === "application/pdf";
+            if (!isPDF) {
+              message.error("Only PDF files are allowed");
+              return Upload.LIST_IGNORE;
+            }
+
+            return true;
+          }}
+          onChange={({ fileList }) => {
+            // Do NOT auto-replace existing file
+            if (fileList.length <= 1) {
+              setFileList(fileList);
+            }
+          }}
           onRemove={() => setFileList([])}
           customRequest={async ({ file, onSuccess, onError }) => {
             try {
@@ -386,8 +425,11 @@ const Dashboard = () => {
               formData.append("file", file);
 
               const response = await fetch(
-                `${BASE_URL}/api/extract_document?template=wind_mit`,
-                { method: "POST", body: formData }
+                `${BASE_URL}/api/extract_document?template=wind_mit}`,
+                {
+                  method: "POST",
+                  body: formData,
+                }
               );
 
               const result = await response.json();
@@ -395,10 +437,10 @@ const Dashboard = () => {
               setApiData((prev) => [...prev, result]);
               setSelectedSubmissionId(result.submission_id);
 
-              setFileList([]);        // ✅ Clear file after upload
+              setFileList([]);
               setIsModalOpen(false);
 
-              message.success("File processed successfully");
+              message.success("PDF processed successfully");
               onSuccess();
             } catch (err) {
               message.error("Upload failed");
@@ -409,7 +451,7 @@ const Dashboard = () => {
           <p className="ant-upload-drag-icon">
             <UploadOutlined />
           </p>
-          <p>Click or drag file to upload</p>
+          <p>Click or drag PDF file to upload</p>
         </Upload.Dragger>
       </Modal>
 
@@ -438,22 +480,30 @@ const Dashboard = () => {
         {selectedExcelData && (() => {
           const rows = buildExcelRows(selectedExcelData);
           const excelColumns = [
-            { title: "Field", dataIndex: "Field", key: "Field", width: 220,
-              onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } }) },
-            { title: "Value", dataIndex: "Value", key: "Value",
+            {
+              title: "Field", dataIndex: "Field", key: "Field", width: 220,
+              onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
+            },
+            {
+              title: "Value", dataIndex: "Value", key: "Value",
               render: (val) => <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{val}</span>,
-              onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } }) },
-            { title: "Confidence Score", dataIndex: "Confidence Score", key: "conf", width: 140,
+              onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
+            },
+            {
+              title: "Confidence Score", dataIndex: "Confidence Score", key: "conf", width: 140,
               render: (val) => {
                 if (!val) return null;
                 const num = parseInt(val);
                 const color = num > 80 ? "green" : num > 50 ? "orange" : "red";
                 return <Tag color={color}>{val}</Tag>;
               },
-              onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } }) },
-            { title: "Page", dataIndex: "Page", key: "page", width: 70,
+              onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
+            },
+            {
+              title: "Page", dataIndex: "Page", key: "page", width: 70,
               render: (val) => val ? <Tag>{val}</Tag> : null,
-              onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } }) },
+              onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
+            },
           ];
           return (
             <Table
