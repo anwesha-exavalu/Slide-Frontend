@@ -155,7 +155,9 @@ const Dashboard = () => {
           ? `${Math.round(data.confidence_score * 100)}%`
           : "—";
       const page = data?.page ?? "—";
-
+      const LLMConfidence= data?.llm_confidence_score != null
+        ? `${Math.round(data.llm_confidence_score * 100)}%`
+        : "—";
       let combinedValue = "";
 
       if (Array.isArray(rawValue)) {
@@ -172,6 +174,7 @@ const Dashboard = () => {
         Value: combinedValue,
         document: json.metadata?.document_name || "—",
         "Confidence Score": confidence,
+        "LLM Confidence": LLMConfidence,
         Page: page,
       });
     });
@@ -526,6 +529,18 @@ const headerStyle = () => ({
                       >
                         Confidence:{" "}
                         {Math.round(item.confidence_score * 100)}%
+                      </Tag>
+                      <Tag
+                        color={
+                          item.llm_confidence_score > 0.8
+                            ? "green"
+                            : item.llm_confidence_score > 0.5
+                              ? "orange"
+                              : "red"
+                        }
+                      >
+                        LLM Confidence: {" "}
+                        {Math.round(item.llm_confidence_score * 100)}%
                       </Tag>
                       <Tag>Page: {item.page}</Tag>
                     </Col>

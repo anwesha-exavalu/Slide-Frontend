@@ -15,6 +15,7 @@ import Login from './layout/Login';
 import EmailDashboard from './SidebarComponents/EmailDashboard';
 import DocumentIntelligence from './SidebarComponents/documentIntelligence';
 import DashboardMortgage from './SidebarComponents/Mortgage';
+import BatchDashboard from './SidebarComponents/BatchDashboard';
 
 const { Sider, Content, Footer } = Layout;
 
@@ -25,7 +26,7 @@ const MyMenu = ({ collapsed }) => {
     '/dashboard': '1',
  '/mortgage': '2',
     '/email': '3',
-
+  '/batch-dashboard': '4',
    
    
   };
@@ -46,6 +47,9 @@ const MyMenu = ({ collapsed }) => {
       </Menu.Item>
       <Menu.Item key="3" icon={<MailOutlined />} title={"Email"}>
         {!collapsed ? <Link to="/email" style={{ textDecoration: 'none' }}>Email</Link> : <Link to="/email" style={{ textDecoration: 'none' }} />}
+      </Menu.Item>
+       <Menu.Item key="4" icon={<FileTextOutlined />} title={"Batch Dashboard"}>
+        {!collapsed ? <Link to="/batch-dashboard" style={{ textDecoration: 'none' }}>Batch Dashboard</Link> : <Link to="/batch-dashboard" style={{ textDecoration: 'none' }} />}
       </Menu.Item>
       {/* <Menu.Item
         key="3"
@@ -148,6 +152,7 @@ const AppLayout = () => {
             <Route path="email" element={<EmailDashboard />} />
             <Route path="document-processing" element={<DocumentIntelligence />} />
             <Route path="mortgage" element={<DashboardMortgage />} />
+            <Route path="batch-dashboard" element={<BatchDashboard/>} />
 
           </Routes>
         </Content>
