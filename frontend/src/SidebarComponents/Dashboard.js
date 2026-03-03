@@ -17,6 +17,7 @@ import {
   InfoCircleOutlined,
   DownloadOutlined,
   FileExcelOutlined,
+  FilePdfOutlined,
 } from "@ant-design/icons";
 import * as XLSX from "xlsx";
 
@@ -47,6 +48,8 @@ const MyTableComponent = ({
         dataSource={dataSource}
         loading={loading}
         pagination={{ pageSize: 5 }}
+        tableLayout="fixed"              // ✅ ADD THIS
+        scroll={{ x: 1200 }}
         onRow={(record) => ({
           style:
             record.key === selectedSubmissionId
@@ -67,10 +70,13 @@ const MyTableComponent = ({
     </TableContainer>
   );
 };
+const scrollCellStyle = {
+  maxHeight: 55,
+  overflowX: "auto",
+  whiteSpace: "normal",
+  wordBreak: "break-word",
+};
 
-/* =========================
-   COMBINED COMPONENT
-========================= */
 const Dashboard = () => {
   const [apiData, setApiData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -192,22 +198,57 @@ const Dashboard = () => {
     json: item.llm_response,
     output: item.submission_id,
   }));
+  const getColumnFilters = (dataIndex) => {
+    const uniqueValues = Array.from(
+      new Set(tableData.map((r) => r[dataIndex]).filter(Boolean))
+    );
 
+    return uniqueValues.map((val) => ({
+      text: String(val).length > 40 ? String(val).slice(0, 40) + "..." : val,
+      value: val,
+    }));
+  }
   /* =========================
      Columns
   ========================= */
   const columns = [
-    { title: "SubmissionID", dataIndex: "submission", width: 120 },
-    { title: "Submitted by", dataIndex: "submittedBy", width: 120 },
-    { title: "Document", dataIndex: "document", width: 250 },
-    { title: "Date", dataIndex: "date" },
+    { title: "SubmissionID", dataIndex: "submission", width: 100 },
+    {
+      title: "Submitted by", dataIndex: "submittedBy", width: 120, filters: getColumnFilters("submittedBy"),
+      onFilter: (value, record) => record.submittedBy === value,
+      render: (text) => (
+        <div style={scrollCellStyle}>{text}</div>
+      ),
+    },
+    {
+      title: "Document",
+      dataIndex: "document",
+      width: 200,
+      filters: getColumnFilters("document"),
+      onFilter: (value, record) => record.document === value,
+      render: (text) => (
+        <div style={scrollCellStyle}>{text}</div>
+      ),
+    },
+
+    {
+      title: "Date",
+      dataIndex: "date",
+      width: 100,
+      filters: getColumnFilters("date"),
+      onFilter: (value, record) => record.date === value,
+    },
+
     {
       title: "Source",
       dataIndex: "source",
+      width: 80,
+      align: "center",
       render: (url) =>
         url ? (
           <a href={url} target="_blank" rel="noopener noreferrer">
-            View PDF
+            <FilePdfOutlined style={{ color: "#f84434" }} />
+            View
           </a>
         ) : (
           "—"
@@ -216,6 +257,7 @@ const Dashboard = () => {
     {
       title: "Excel",
       dataIndex: "json",
+      width: 80,
       render: (json) =>
         json ? (
           <Button
@@ -253,6 +295,8 @@ const Dashboard = () => {
     {
       title: "Output",
       dataIndex: "output",
+      width: 50,
+      align: "center",
       render: (submissionId) => (
         <InfoCircleOutlined
           style={{ fontSize: 18, color: "#1677ff", cursor: "pointer" }}
@@ -384,8 +428,12 @@ const Dashboard = () => {
       <Modal
         title="Upload File"
         open={isModalOpen}
+        destroyOnClose
         onCancel={() => {
           setIsModalOpen(false);
+          setFileList([]);
+        }}
+        afterClose={() => {
           setFileList([]);
         }}
         footer={null}
@@ -425,7 +473,7 @@ const Dashboard = () => {
               formData.append("file", file);
 
               const response = await fetch(
-                `${BASE_URL}/api/extract_document?template=wind_mit}`,
+                `${BASE_URL}/api/extract_document?template=wind_mit`,
                 {
                   method: "POST",
                   body: formData,

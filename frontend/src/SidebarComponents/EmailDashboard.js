@@ -18,12 +18,11 @@ import { Checkbox } from "antd";
 /* =========================
    AZURE CONFIG (UNCHANGED)
 ========================= */
-const ACCOUNT = "strexavalupublic";
+const ACCOUNT = "strexavalupublic001";
 const CONTAINER = "mail-processed";
 
 /* Existing SAS – DO NOT TOUCH */
-const SAS_TOKEN =
-    "sp=rwl&st=2026-02-26T05:46:26Z&se=2026-02-28T14:01:26Z&sv=2024-11-04&sr=c&sig=Xhi%2BQpOAntZ%2FmHxAdI%2B%2FxRxoudjkSI%2F9fw7gXVqWle8%3D";
+const SAS_TOKEN = "sp=rwl&st=2026-03-02T16:27:38Z&se=2026-03-27T00:42:38Z&sv=2024-11-04&sr=c&sig=wz%2Bvwk0G2AjeuamJSALgbE25bQZJjkbyZAmG%2BuUG8D0%3D";
 
 const POLL_MS = 10000;
 
@@ -33,7 +32,7 @@ const POLL_MS = 10000;
 const RAW_CONTAINER = "mail-storage";
 
 /* Separate SAS for attachments ONLY */
-const RAW_SAS = "sp=rwl&st=2026-02-26T05:49:58Z&se=2026-02-28T14:04:58Z&sv=2024-11-04&sr=c&sig=Zb2N4phvH4bhPiwrtda3tbroJBfH0LGj%2FHRaLAC%2FkaU%3D";
+const RAW_SAS = "sp=rwl&st=2026-03-02T16:25:55Z&se=2026-03-27T00:40:55Z&sv=2024-11-04&sr=c&sig=VbPNwi3%2BfXeKUvSPVWRyyBQ0KR5Vqbt46KrLIoxaRn8%3D";
 
 /* =========================
    HELPERS (PREVIOUS + NEW)
@@ -87,7 +86,7 @@ const MyTableComponent = ({ columns, dataSource, loading }) => {
                 columns={columns}
                 dataSource={dataSource}
                 loading={loading}
-                pagination
+                pagination={{ pageSize: 5 }}
                 tableLayout="fixed"
                 scroll={{ x: 1200 }}
             />
@@ -115,6 +114,21 @@ const formatDateTime = (value) => {
         hour12: true,
     });
 };
+
+
+const extractEmail = (value) => {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    if (value.emailAddress) {
+        const { name, address } = value.emailAddress;
+        return name ? `${name} <${address}>` : address || "";
+    }
+    if (value.address) {
+        return value.name ? `${value.name} <${value.address}>` : value.address;
+    }
+    return JSON.stringify(value); 
+};
+
 /* =========================
    EMAIL DASHBOARD
 ========================= */
@@ -209,8 +223,8 @@ const EmailDashboard = () => {
                         blobName: b.name,
                         email_id: email.email_id,
                         received_at: email.received_at,
-                        from: email.from,
-                        to: email.to,
+                        from: extractEmail(email.from),
+                        to: extractEmail(email.to),
                         subject: email.subject,
                         classification: ui.emailCategory,
                         lob: ui.lob,
@@ -474,15 +488,15 @@ const EmailDashboard = () => {
                         }}
                     >
                         <Avatar size={40}>
-                            {selectedMail?.from?.[0]}
+                            {extractEmail(selectedMail?.from)?.[0]?.toUpperCase()}
                         </Avatar>
 
                         <div style={{ flex: 1 }}>
                             <div style={{ fontWeight: 600 }}>
-                                {selectedMail?.from}
+                                {extractEmail(selectedMail?.from)}   {/* ✅ */}
                             </div>
                             <div style={{ fontSize: 12, color: "#666" }}>
-                                To: {selectedMail?.to}
+                                To: {extractEmail(selectedMail?.to)}  {/* ✅ */}
                             </div>
                         </div>
 
