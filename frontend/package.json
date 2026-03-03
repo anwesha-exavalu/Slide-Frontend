@@ -31,6 +31,7 @@
     "react-router-dom": "^6.26.2",
     "react-scripts": "5.0.1",
     "recharts": "^2.13.3",
+    "sheetjs-style": "^0.15.8",
     "styled-components": "^6.1.15",
     "web-vitals": "^2.1.4",
     "xlsx": "^0.18.5"

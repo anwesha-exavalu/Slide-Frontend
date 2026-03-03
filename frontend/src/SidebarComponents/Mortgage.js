@@ -19,7 +19,7 @@ import {
   FileExcelOutlined,
   FilePdfOutlined
 } from "@ant-design/icons";
-import * as XLSX from "xlsx";
+import XLSX from "sheetjs-style";
 
 import "./Dashboard.css";
 import "./Table.css";
@@ -184,27 +184,124 @@ const DashboardMortgage = () => {
      Excel Helper: Download xlsx file
   ========================= */
   const handleDownloadExcel = (json, documentName) => {
-    const rows = buildExcelRows(json);
-    const worksheet = XLSX.utils.json_to_sheet(rows);
+    if (!json) return;
 
-    // Set column widths
-    worksheet["!cols"] = [
-      { wch: 30 }, // Field Name
-      { wch: 50 }, // Value
-      { wch: 18 }, // Confidence Score
-      { wch: 18 }, // LLM Confidence Score
-      { wch: 14 }, // Page Number
+    const wb = XLSX.utils.book_new();
+    const ws = {};
+
+    const fields = json.fields || {};
+
+    const specialMergeFields = [
+      "Current Mortgagee Company",
+      "Address of Mortgagee Company",
     ];
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Extracted Fields");
+    const fieldNames = Object.keys(fields);
 
-    const fileName = documentName
-      ? `${documentName.replace(/\s+/g, "_")}_extracted.xlsx`
-      : "extracted_fields.xlsx";
+    const maxRows = Math.max(
+      ...fieldNames.map((field) =>
+        Array.isArray(fields[field]) ? fields[field].length : 1
+      )
+    );
 
-    XLSX.writeFile(workbook, fileName);
+    const headers = ["Document Name", ...fieldNames];
+
+    // Header Row
+    headers.forEach((header, colIndex) => {
+      const cellRef = XLSX.utils.encode_cell({ r: 0, c: colIndex });
+      ws[cellRef] = {
+        v: header,
+        s: headerStyle(),
+      };
+    });
+
+    const merges = [];
+
+    for (let r = 0; r < maxRows; r++) {
+      const rowIndex = r + 1;
+
+      // Document Name column
+      ws[XLSX.utils.encode_cell({ r: rowIndex, c: 0 })] = {
+        v: r === 0 ? documentName : "",
+        s: cellStyle(),
+      };
+
+      fieldNames.forEach((field, colIndex) => {
+        const valueArray = Array.isArray(fields[field])
+          ? fields[field]
+          : [fields[field]];
+
+        const value = valueArray[r]?.value ?? "";
+
+        ws[XLSX.utils.encode_cell({ r: rowIndex, c: colIndex + 1 })] = {
+          v: value,
+          s: cellStyle(),
+        };
+      });
+    }
+
+    // Merge Document Name vertically
+    if (maxRows > 1) {
+      merges.push({
+        s: { r: 1, c: 0 },
+        e: { r: maxRows, c: 0 },
+      });
+    }
+
+    // Merge special fields vertically if single value
+    specialMergeFields.forEach((field) => {
+      const fieldIndex = headers.indexOf(field);
+      const values = fields[field];
+
+      if (
+        fieldIndex !== -1 &&
+        (!Array.isArray(values) || values.length <= 1) &&
+        maxRows > 1
+      ) {
+        merges.push({
+          s: { r: 1, c: fieldIndex },
+          e: { r: maxRows, c: fieldIndex },
+        });
+      }
+    });
+
+    ws["!ref"] = XLSX.utils.encode_range({
+      s: { r: 0, c: 0 },
+      e: { r: maxRows, c: headers.length - 1 },
+    });
+
+    ws["!merges"] = merges;
+
+    ws["!cols"] = headers.map(() => ({ wch: 28 }));
+
+    XLSX.utils.book_append_sheet(wb, ws, "Mortgage Extracted Data");
+    XLSX.writeFile(wb, `${documentName}_extracted.xlsx`);
   };
+
+
+  // Header Style
+  const headerStyle = () => ({
+    font: { bold: true, color: { rgb: "FFFFFF" } },
+    fill: { fgColor: { rgb: "217346" } },
+    alignment: { horizontal: "center", vertical: "center", wrapText: true },
+    border: {
+      top: { style: "thin" },
+      bottom: { style: "thin" },
+      left: { style: "thin" },
+      right: { style: "thin" },
+    },
+  });
+
+  // Normal Cell Style
+  const cellStyle = () => ({
+    alignment: { vertical: "top", wrapText: true },
+    border: {
+      top: { style: "thin" },
+      bottom: { style: "thin" },
+      left: { style: "thin" },
+      right: { style: "thin" },
+    },
+  });
 
   /* =========================
      Table Data
@@ -233,7 +330,38 @@ const DashboardMortgage = () => {
       value: val,
     }));
   };
+  const buildMortgagePreviewRows = (json, documentName) => {
+    if (!json) return [];
 
+    const fields = json.fields || {};
+    const fieldNames = Object.keys(fields);
+
+    const maxRows = Math.max(
+      ...fieldNames.map((field) =>
+        Array.isArray(fields[field]) ? fields[field].length : 1
+      )
+    );
+
+    const rows = [];
+
+    for (let r = 0; r < maxRows; r++) {
+      const row = {};
+
+      row["Document Name"] = r === 0 ? documentName : "";
+
+      fieldNames.forEach((field) => {
+        const valueArray = Array.isArray(fields[field])
+          ? fields[field]
+          : [fields[field]];
+
+        row[field] = valueArray[r]?.value ?? "";
+      });
+
+      rows.push(row);
+    }
+
+    return rows;
+  };
   /* =========================
      Columns
   ========================= */
@@ -303,7 +431,7 @@ const DashboardMortgage = () => {
     {
       title: "Excel",
       dataIndex: "excelJson",
-       width: 80,
+      width: 80,
       render: (json, record) =>
         json ? (
           <Button
@@ -326,8 +454,8 @@ const DashboardMortgage = () => {
     {
       title: "Output",
       dataIndex: "output",
-       width: 50,
-       align: "center",
+      width: 50,
+      align: "center",
       render: (submissionId) => (
         <InfoCircleOutlined
           style={{ fontSize: 18, color: "#1677ff", cursor: "pointer" }}
@@ -669,75 +797,36 @@ const DashboardMortgage = () => {
         width={860}
       >
         <Table
+          rowKey={(_, index) => index}
           columns={[
             {
-              title: "Field Name",
-              dataIndex: "Field Name",
-              width: 220,
+              title: "Document Name",
+              dataIndex: "Document Name",
               onHeaderCell: () => ({
                 style: { backgroundColor: "#217346", color: "#fff" },
               }),
             },
-            {
-              title: "Value",
-              dataIndex: "Value",
+            ...Object.keys(selectedExcelData?.json?.fields || {}).map((field) => ({
+              title: field,
+              dataIndex: field,
+              onHeaderCell: () => ({
+                style: { backgroundColor: "#217346", color: "#fff" },
+              }),
               render: (val) => (
                 <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                   {val}
                 </span>
               ),
-              onHeaderCell: () => ({
-                style: { backgroundColor: "#217346", color: "#fff" },
-              }),
-            },
-            {
-              title: "Confidence Score",
-              dataIndex: "Confidence Score",
-              width: 140,
-              render: (val) => {
-                if (!val) return null;
-                const num = parseInt(val);
-                const color =
-                  num > 80 ? "green" : num > 50 ? "orange" : "red";
-                return <Tag color={color}>{val}</Tag>;
-              },
-              onHeaderCell: () => ({
-                style: { backgroundColor: "#217346", color: "#fff" },
-              }),
-            },
-            {
-              title: "LLM Confidence Score",
-              dataIndex: "LLM Confidence Score",
-              width: 140,
-              render: (val) => {
-                if (!val) return null;
-                const num = parseInt(val);
-                const color =
-                  num > 80 ? "green" : num > 50 ? "orange" : "red";
-                return <Tag color={color}>{val}</Tag>;
-              },
-              onHeaderCell: () => ({
-                style: { backgroundColor: "#217346", color: "#fff" },
-              }),
-            },
-            {
-              title: "Page Number",
-              dataIndex: "Page Number",
-              width: 90,
-              render: (val) => (val ? <Tag>{val}</Tag> : null),
-              onHeaderCell: () => ({
-                style: { backgroundColor: "#217346", color: "#fff" },
-              }),
-            },
+            })),
           ]}
-          dataSource={excelPreviewRows.map((r, i) => ({
-            ...r,
-            key: i,
-          }))}
-          pagination={{ pageSize: 15 }}
-          size="small"
+          dataSource={buildMortgagePreviewRows(
+            selectedExcelData?.json,
+            selectedExcelData?.documentName
+          )}
+          pagination={{ pageSize: 10 }}
           bordered
-          scroll={{ y: 420 }}
+          size="small"
+          scroll={{ x: true }}
         />
       </Modal>
     </Container>

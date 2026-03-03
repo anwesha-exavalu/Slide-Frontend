@@ -19,7 +19,7 @@ import {
   FileExcelOutlined,
   FilePdfOutlined,
 } from "@ant-design/icons";
-import * as XLSX from "xlsx";
+import XLSX from "sheetjs-style";
 
 import "./Dashboard.css";
 import "./Table.css";
@@ -144,44 +144,157 @@ const Dashboard = () => {
   ========================= */
   const buildExcelRows = (json) => {
     if (!json) return [];
+
     const rows = [];
     const fields = json.fields || {};
+
     Object.entries(fields).forEach(([fieldName, data]) => {
       const rawValue = data?.value;
-      const confidence = data?.confidence_score != null
-        ? `${Math.round(data.confidence_score * 100)}%`
-        : "—";
+      const confidence =
+        data?.confidence_score != null
+          ? `${Math.round(data.confidence_score * 100)}%`
+          : "—";
       const page = data?.page ?? "—";
 
+      let combinedValue = "";
+
       if (Array.isArray(rawValue)) {
-        rawValue.forEach((val, idx) => {
-          rows.push({
-            Field: fieldName,
-            Value: idx === 0 ? String(val ?? "") : String(val ?? ""),
-            "Confidence Score": idx === 0 ? confidence : "",
-            "Page": idx === 0 ? page : "",
-          });
-        });
+        // Combine array values into single multi-line string
+        combinedValue = rawValue
+          .map((val) => String(val ?? ""))
+          .join("\n\n");
       } else {
-        rows.push({
-          Field: fieldName,
-          Value: String(rawValue ?? ""),
-          "Confidence Score": confidence,
-          "Page": page,
-        });
+        combinedValue = String(rawValue ?? "");
       }
+
+      rows.push({
+        Field: fieldName,
+        Value: combinedValue,
+        document: json.metadata?.document_name || "—",
+        "Confidence Score": confidence,
+        Page: page,
+      });
     });
+
     return rows;
   };
 
-  const downloadExcel = (json, filename = `${json?.metadata?.document_name?.replace(/\s+/g, "_")}_extracted.xlsx`) => {
-    const rows = buildExcelRows(json);
-    const ws = XLSX.utils.json_to_sheet(rows);
-    ws["!cols"] = [{ wch: 30 }, { wch: 50 }, { wch: 18 }, { wch: 8 }];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Extracted Fields");
-    XLSX.writeFile(wb, filename);
-  };
+const downloadExcel = (json,filename = `${json?.metadata?.document_name}`) => {
+  if (!json) return;
+
+  const wb = XLSX.utils.book_new();
+  const ws = {};
+
+  const fields = json.fields || {};
+  const fieldNames = Object.keys(fields);
+
+  const maxRows = Math.max(
+    ...fieldNames.map((field) =>
+      Array.isArray(fields[field]?.value)
+        ? fields[field].value.length
+        : 1
+    )
+  );
+
+  const headers = ["Document Name", "Field", "Value"];
+
+  // Header row
+  headers.forEach((header, colIndex) => {
+    const cellRef = XLSX.utils.encode_cell({ r: 0, c: colIndex });
+    ws[cellRef] = {
+      v: header,
+      s: headerStyle(),
+    };
+  });
+
+  const merges = [];
+  let rowIndex = 1;
+
+  Object.entries(fields).forEach(([fieldName, data]) => {
+    const values = Array.isArray(data?.value)
+      ? data.value
+      : [data?.value];
+
+    const startRow = rowIndex;
+
+    values.forEach((val, index) => {
+      ws[XLSX.utils.encode_cell({ r: rowIndex, c: 0 })] = {
+        v: index === 0 ? filename : "",
+        s: cellStyle(),
+      };
+
+      ws[XLSX.utils.encode_cell({ r: rowIndex, c: 1 })] = {
+        v: index === 0 ? fieldName : "",
+        s: cellStyle(),
+      };
+
+      ws[XLSX.utils.encode_cell({ r: rowIndex, c: 2 })] = {
+        v: val ?? "",
+        s: cellStyle(),
+      };
+
+      rowIndex++;
+    });
+
+    const endRow = rowIndex - 1;
+
+    if (endRow > startRow) {
+      merges.push({
+        s: { r: startRow, c: 1 },
+        e: { r: endRow, c: 1 },
+      });
+    }
+  });
+
+  // Merge Document Name column
+  if (rowIndex > 2) {
+    merges.push({
+      s: { r: 1, c: 0 },
+      e: { r: rowIndex - 1, c: 0 },
+    });
+  }
+
+  ws["!ref"] = XLSX.utils.encode_range({
+    s: { r: 0, c: 0 },
+    e: { r: rowIndex - 1, c: 2 },
+  });
+
+  ws["!merges"] = merges;
+
+  ws["!cols"] = [
+    { wch: 28 },
+    { wch: 30 },
+    { wch: 70 },
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, "Extracted Data");
+  XLSX.writeFile(wb, `${filename}_extracted.xlsx`);
+};
+
+const headerStyle = () => ({
+  font: { bold: true, color: { rgb: "FFFFFF" } },
+  fill: { fgColor: { rgb: "217346" } },
+  alignment: { horizontal: "center", vertical: "center", wrapText: true },
+  border: {
+    top: { style: "thin" },
+    bottom: { style: "thin" },
+    left: { style: "thin" },
+    right: { style: "thin" },
+  },
+});
+
+
+
+  // Reusable Cell Style
+  const cellStyle = () => ({
+    alignment: { vertical: "top", wrapText: true },
+    border: {
+      top: { style: "thin" },
+      bottom: { style: "thin" },
+      left: { style: "thin" },
+      right: { style: "thin" },
+    },
+  });
 
   /* =========================
      Table Data
@@ -537,21 +650,21 @@ const Dashboard = () => {
               render: (val) => <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{val}</span>,
               onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
             },
-            {
-              title: "Confidence Score", dataIndex: "Confidence Score", key: "conf", width: 140,
-              render: (val) => {
-                if (!val) return null;
-                const num = parseInt(val);
-                const color = num > 80 ? "green" : num > 50 ? "orange" : "red";
-                return <Tag color={color}>{val}</Tag>;
-              },
-              onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
-            },
-            {
-              title: "Page", dataIndex: "Page", key: "page", width: 70,
-              render: (val) => val ? <Tag>{val}</Tag> : null,
-              onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
-            },
+            // {
+            //   title: "Confidence Score", dataIndex: "Confidence Score", key: "conf", width: 140,
+            //   render: (val) => {
+            //     if (!val) return null;
+            //     const num = parseInt(val);
+            //     const color = num > 80 ? "green" : num > 50 ? "orange" : "red";
+            //     return <Tag color={color}>{val}</Tag>;
+            //   },
+            //   onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
+            // },
+            // {
+            //   title: "Page", dataIndex: "Page", key: "page", width: 70,
+            //   render: (val) => val ? <Tag>{val}</Tag> : null,
+            //   onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
+            // },
           ];
           return (
             <Table
