@@ -383,7 +383,7 @@ const EmailDashboard = () => {
         },
         {
             title: "Source",
-            width: 160,
+            width: 180,
             render: (_, r) => {
                 const emlUrl = buildEmailSourceUrl(r.email_id);
 
