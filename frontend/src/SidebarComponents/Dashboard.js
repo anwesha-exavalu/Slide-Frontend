@@ -530,7 +530,7 @@ const headerStyle = () => ({
                         Confidence:{" "}
                         {Math.round(item.confidence_score * 100)}%
                       </Tag>
-                      <Tag
+                      {/* <Tag
                         color={
                           item.llm_confidence_score > 0.8
                             ? "green"
@@ -541,7 +541,7 @@ const headerStyle = () => ({
                       >
                         LLM Confidence: {" "}
                         {Math.round(item.llm_confidence_score * 100)}%
-                      </Tag>
+                      </Tag> */}
                       <Tag>Page: {item.page}</Tag>
                     </Col>
                   </Row>

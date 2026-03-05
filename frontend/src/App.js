@@ -16,6 +16,7 @@ import EmailDashboard from './SidebarComponents/EmailDashboard';
 import DocumentIntelligence from './SidebarComponents/documentIntelligence';
 import DashboardMortgage from './SidebarComponents/Mortgage';
 import BatchDashboard from './SidebarComponents/BatchDashboard';
+import BatchDashboardMortgage from './SidebarComponents/BatchDashboardMortgage';
 
 const { Sider, Content, Footer } = Layout;
 
@@ -25,8 +26,9 @@ const MyMenu = ({ collapsed }) => {
   const pathToKey = {
     '/dashboard': '1',
  '/mortgage': '2',
-    '/email': '3',
-  '/batch-dashboard': '4',
+  '/batch-dashboard-windmit': '3',
+'/batch-dashboard-mortgage': '4',
+     '/email': '5',
    
    
   };
@@ -45,11 +47,15 @@ const MyMenu = ({ collapsed }) => {
       <Menu.Item key="2" icon={<FileTextOutlined />} title={"Mortgage Letter"}>
         {!collapsed ? <Link to="/mortgage" style={{ textDecoration: 'none' }}>IDP-Mortgage Letter</Link> : <Link to="/mortgage" style={{ textDecoration: 'none' }} />}
       </Menu.Item>
-      <Menu.Item key="3" icon={<MailOutlined />} title={"Email"}>
-        {!collapsed ? <Link to="/email" style={{ textDecoration: 'none' }}>Email</Link> : <Link to="/email" style={{ textDecoration: 'none' }} />}
+     
+       <Menu.Item key="3" icon={<FileTextOutlined />} title={"Batch Dashboard wind mitigation"}>
+        {!collapsed ? <Link to="/batch-dashboard-windmit" style={{ textDecoration: 'none' }}>Batch Dashboard Wind Mitigation</Link> : <Link to="/batch-dashboard-windmit" style={{ textDecoration: 'none' }} />}
       </Menu.Item>
-       <Menu.Item key="4" icon={<FileTextOutlined />} title={"Batch Dashboard"}>
-        {!collapsed ? <Link to="/batch-dashboard" style={{ textDecoration: 'none' }}>Batch Dashboard</Link> : <Link to="/batch-dashboard" style={{ textDecoration: 'none' }} />}
+       {/* <Menu.Item key="4" icon={<FileTextOutlined />} title={"Batch Dashboard Mortgage"}>
+        {!collapsed ? <Link to="/batch-dashboard-mortgage" style={{ textDecoration: 'none' }}>Batch Dashboard Mortgage</Link> : <Link to="/batch-dashboard-mortgage" style={{ textDecoration: 'none' }} />}
+      </Menu.Item> */}
+       <Menu.Item key="5" icon={<MailOutlined />} title={"Email"}>
+        {!collapsed ? <Link to="/email" style={{ textDecoration: 'none' }}>Email</Link> : <Link to="/email" style={{ textDecoration: 'none' }} />}
       </Menu.Item>
       {/* <Menu.Item
         key="3"
@@ -152,7 +158,8 @@ const AppLayout = () => {
             <Route path="email" element={<EmailDashboard />} />
             <Route path="document-processing" element={<DocumentIntelligence />} />
             <Route path="mortgage" element={<DashboardMortgage />} />
-            <Route path="batch-dashboard" element={<BatchDashboard/>} />
+            <Route path="batch-dashboard-windmit" element={<BatchDashboard/>} />
+             <Route path="batch-dashboard-mortgage" element={<BatchDashboardMortgage/>} />
 
           </Routes>
         </Content>

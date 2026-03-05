@@ -639,7 +639,7 @@ const DashboardMortgage = () => {
                                 )}
                                 %
                               </Tag>
-                              <Tag
+                              {/* <Tag
                                 color={
                                   fieldItem.llm_confidence_score > 0.8
                                     ? "green"
@@ -653,7 +653,7 @@ const DashboardMortgage = () => {
                                   (fieldItem.llm_confidence_score || 0) * 100
                                 )}
                                 %
-                              </Tag>
+                              </Tag> */}
                               <Tag>Page: {fieldItem.page ?? "—"}</Tag>
                             </Col>
                           </Row>
@@ -805,18 +805,61 @@ const DashboardMortgage = () => {
               onHeaderCell: () => ({
                 style: { backgroundColor: "#217346", color: "#fff" },
               }),
+              render: (value, row, index) => {
+                const rowCount = buildMortgagePreviewRows(
+                  selectedExcelData?.json,
+                  selectedExcelData?.documentName
+                ).length;
+
+                return {
+                  children: value,
+                  props: {
+                    rowSpan: index === 0 ? rowCount : 0,
+                  },
+                };
+              },
             },
+
             ...Object.keys(selectedExcelData?.json?.fields || {}).map((field) => ({
               title: field,
               dataIndex: field,
               onHeaderCell: () => ({
                 style: { backgroundColor: "#217346", color: "#fff" },
               }),
-              render: (val) => (
-                <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-                  {val}
-                </span>
-              ),
+
+              render: (value, row, index) => {
+                const rows = buildMortgagePreviewRows(
+                  selectedExcelData?.json,
+                  selectedExcelData?.documentName
+                );
+
+                const specialFields = [
+                  "Current Mortgagee Company",
+                  "Address of Mortgagee Company",
+                ];
+
+                if (specialFields.includes(field)) {
+                  const rowCount = rows.length;
+
+                  return {
+                    children: value,
+                    props: {
+                      rowSpan: index === 0 ? rowCount : 0,
+                    },
+                  };
+                }
+
+                return {
+                  children: (
+                    <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                      {value}
+                    </span>
+                  ),
+                  props: {
+                    rowSpan: 1,
+                  },
+                };
+              },
             })),
           ]}
           dataSource={buildMortgagePreviewRows(

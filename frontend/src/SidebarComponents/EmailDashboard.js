@@ -8,7 +8,7 @@ import {
     Space,
     Tag,
 } from "antd";
-import { InfoCircleOutlined, PaperClipOutlined } from "@ant-design/icons";
+import { InfoCircleOutlined, PaperClipOutlined, DownloadOutlined } from "@ant-design/icons";
 import { TableContainer } from "../styles/components/TableComponent";
 import useMetaData from "../context/metaData";
 import { Container } from "../styles/components/Layout";
@@ -33,7 +33,11 @@ const RAW_CONTAINER = "mail-storage";
 
 /* Separate SAS for attachments ONLY */
 const RAW_SAS = "sp=rwl&st=2026-03-02T16:25:55Z&se=2026-03-27T00:40:55Z&sv=2024-11-04&sr=c&sig=VbPNwi3%2BfXeKUvSPVWRyyBQ0KR5Vqbt46KrLIoxaRn8%3D";
+const EXPORT_EXCEL_API =
+    "https://bk-idp-test-axfeb0g6cvhkfkes.eastus-01.azurewebsites.net/api/export/cleaned.xlsx";
 
+const EXPORT_CSV_API =
+    "https://bk-idp-test-axfeb0g6cvhkfkes.eastus-01.azurewebsites.net/api/export/cleaned.csv";
 /* =========================
    HELPERS (PREVIOUS + NEW)
 ========================= */
@@ -52,6 +56,11 @@ const buildAttachmentUrl = (blobPath) =>
         blobPath
     )}?${RAW_SAS}`;
 
+/* NEW – EMAIL SOURCE (.eml) */
+const buildEmailSourceUrl = (messageId) =>
+    `https://${ACCOUNT}.blob.core.windows.net/${RAW_CONTAINER}/${encodeBlobName(
+        `${messageId}/email.eml`
+    )}?${RAW_SAS}`;
 const stripDisclaimer = (html = "") => {
     const disclaimer =
         "This message is intended only for the person to whom it is addressed";
@@ -126,7 +135,7 @@ const extractEmail = (value) => {
     if (value.address) {
         return value.name ? `${value.name} <${value.address}>` : value.address;
     }
-    return JSON.stringify(value); 
+    return JSON.stringify(value);
 };
 
 /* =========================
@@ -374,19 +383,55 @@ const EmailDashboard = () => {
         },
         {
             title: "Source",
-            width: 120,
-            render: (_, r) => (
-                <Button
-                    size="small"
-                    type="link"
-                    onClick={() => {
-                        setSelectedMail(r);
-                        setMailModalOpen(true);
-                    }}
-                >
-                    View
-                </Button>
-            ),
+            width: 160,
+            render: (_, r) => {
+                const emlUrl = buildEmailSourceUrl(r.email_id);
+
+                return (
+                    <Space>
+                        {/* View email */}
+                        <Button
+                            size="small"
+                            type="link"
+                            onClick={() => {
+                                setSelectedMail(r);
+                                setMailModalOpen(true);
+                            }}
+                        >
+                            View
+                        </Button>
+
+                        {/* Download EML */}
+                        <Button
+                            size="small"
+                            type="link"
+                            onClick={async () => {
+                                try {
+                                    const response = await fetch(emlUrl);
+                                    const blob = await response.blob();
+
+                                    const url = window.URL.createObjectURL(blob);
+
+                                    const link = document.createElement("a");
+                                    link.href = url;
+                                    link.download = `${r.email_id}.eml`;
+
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+
+                                    window.URL.revokeObjectURL(url);
+                                } catch (err) {
+                                    console.error(err);
+                                    message.error("Failed to download email");
+                                }
+                            }}
+                        >
+                            Download
+                        </Button>
+                    </Space>
+                );
+            },
         },
         {
             title: "JSON",
@@ -456,10 +501,57 @@ const EmailDashboard = () => {
             ),
         },
     ];
+    const downloadFile = async (url, filename) => {
+        try {
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Download failed");
+            }
+
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = downloadUrl;
+            link.download = filename;
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            window.URL.revokeObjectURL(downloadUrl);
+        } catch (err) {
+            console.error(err);
+            message.error("Failed to download file");
+        }
+    };
     return (
         <Container>
-            <MyTableComponent columns={columns} dataSource={rows} loading={loading} />
+            <div style={{ marginBottom: 12, display: "flex", justifyContent: "flex-end", gap: 10 }}>
+                <Button
+                    icon={<DownloadOutlined />}
+                    type="primary"
+                    onClick={() => downloadFile(EXPORT_EXCEL_API, "emails.xlsx")}
+                >
+                    Download Excel
+                </Button>
 
+                <Button
+                    icon={<DownloadOutlined />}
+                    type="primary"
+                    onClick={() => downloadFile(EXPORT_CSV_API, "emails.csv")}
+                >
+                    Download CSV
+                </Button>
+            </div>
+
+            <MyTableComponent columns={columns} dataSource={rows} loading={loading} />
             {/* ================= EMAIL MODAL ================= */}
             <Modal
                 open={mailModalOpen}

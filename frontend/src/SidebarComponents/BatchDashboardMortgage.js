@@ -74,7 +74,7 @@ const MyTableComponent = ({
     );
 };
 
-const BatchDashboard = () => {
+const BatchDashboardMortgage = () => {
     const [batchData, setBatchData] = useState([]);
     const [selectedKey, setSelectedKey] = useState(null);
     const [fileList, setFileList] = useState([]);
@@ -112,7 +112,7 @@ const BatchDashboard = () => {
             });
 
             const response = await fetch(
-                `${BASE_URL}/api/extract_document_batch?template=wind_mit`,
+                `${BASE_URL}/api/extract_document_batch?template=mortgage`,
                 {
                     method: "POST",
                     body: formData,
@@ -132,139 +132,139 @@ const BatchDashboard = () => {
             setLoading(false);
         }
     };
-    /* =========================
-       Excel Helpers
+   /* =========================
+       Excel Helper: Build flat rows from llm_response
     ========================= */
     const buildExcelRows = (json) => {
-        if (!json) return [];
-
-        const rows = [];
-        const fields = json.fields || {};
-
-        Object.entries(fields).forEach(([fieldName, data]) => {
-            const rawValue = data?.value;
-            const confidence =
-                data?.confidence_score != null
-                    ? `${Math.round(data.confidence_score * 100)}%`
-                    : "—";
-            const page = data?.page ?? "—";
-            const LLMConfidence = data?.llm_confidence_score != null
-                ? `${Math.round(data.llm_confidence_score * 100)}%`
-                : "—";
-            let combinedValue = "";
-
-            if (Array.isArray(rawValue)) {
-                // Combine array values into single multi-line string
-                combinedValue = rawValue
-                    .map((val) => String(val ?? ""))
-                    .join("\n\n");
-            } else {
-                combinedValue = String(rawValue ?? "");
-            }
-
+      if (!json) return [];
+      const fields = json.fields || {};
+      const rows = [];
+  
+      Object.entries(fields).forEach(([fieldName, values]) => {
+        const valueArray = Array.isArray(values) ? values : [];
+        if (valueArray.length === 0) {
+          rows.push({
+            "Field Name": fieldName,
+            Value: "",
+            "Confidence Score": "",
+            "LLM Confidence Score": "",
+            "Page Number": "",
+          });
+        } else {
+          valueArray.forEach((item, idx) => {
             rows.push({
-                Field: fieldName,
-                Value: combinedValue,
-                document: json.metadata?.document_name || "—",
-                "Confidence Score": confidence,
-                "LLM Confidence": LLMConfidence,
-                Page: page,
+              "Field Name": idx === 0 ? fieldName : "",
+              Value: item.value ?? "",
+              "Confidence Score":
+                item.confidence_score !== undefined
+                  ? `${Math.round(item.confidence_score * 100)}%`
+                  : "",
+              "LLM Confidence Score": item.llm_confidence_score !== undefined ? `${Math.round(item.llm_confidence_score * 100)}%` : "",
+              "Page Number": item.page ?? "",
             });
-        });
-
-        return rows;
-    };
-
-    const downloadExcel = (json, filename = `${json?.metadata?.document_name}`) => {
-        if (!json) return;
-
-        const wb = XLSX.utils.book_new();
-        const ws = {};
-
-        const fields = json.fields || {};
-        const fieldNames = Object.keys(fields);
-
-        const maxRows = Math.max(
-            ...fieldNames.map((field) =>
-                Array.isArray(fields[field]?.value)
-                    ? fields[field].value.length
-                    : 1
-            )
-        );
-
-        const headers = ["Document Name", "Field", "Value"];
-
-        // Header row
-        headers.forEach((header, colIndex) => {
-            const cellRef = XLSX.utils.encode_cell({ r: 0, c: colIndex });
-            ws[cellRef] = {
-                v: header,
-                s: headerStyle(),
-            };
-        });
-
-        const merges = [];
-        let rowIndex = 1;
-
-        Object.entries(fields).forEach(([fieldName, data]) => {
-            const values = Array.isArray(data?.value)
-                ? data.value
-                : [data?.value];
-
-            const startRow = rowIndex;
-
-            values.forEach((val, index) => {
-                ws[XLSX.utils.encode_cell({ r: rowIndex, c: 0 })] = {
-                    v: index === 0 ? filename : "",
-                    s: cellStyle(),
-                };
-
-                ws[XLSX.utils.encode_cell({ r: rowIndex, c: 1 })] = {
-                    v: index === 0 ? fieldName : "",
-                    s: cellStyle(),
-                };
-
-                ws[XLSX.utils.encode_cell({ r: rowIndex, c: 2 })] = {
-                    v: val ?? "",
-                    s: cellStyle(),
-                };
-
-                rowIndex++;
-            });
-
-            const endRow = rowIndex - 1;
-
-            if (endRow > startRow) {
-                merges.push({
-                    s: { r: startRow, c: 1 },
-                    e: { r: endRow, c: 1 },
-                });
-            }
-        });
-
-        // Merge Document Name column
-        if (rowIndex > 2) {
-            merges.push({
-                s: { r: 1, c: 0 },
-                e: { r: rowIndex - 1, c: 0 },
-            });
+          })
         }
-
-        ws["!ref"] = XLSX.utils.encode_range({
-            s: { r: 0, c: 0 },
-            e: { r: rowIndex - 1, c: 2 },
+      });
+  
+      return rows;
+    };
+  
+    /* =========================
+       Excel Helper: Download xlsx file
+    ========================= */
+    const handleDownloadExcel = (json, documentName) => {
+      if (!json) return;
+  
+      const wb = XLSX.utils.book_new();
+      const ws = {};
+  
+      const fields = json.fields || {};
+  
+      const specialMergeFields = [
+        "Current Mortgagee Company",
+        "Address of Mortgagee Company",
+      ];
+  
+      const fieldNames = Object.keys(fields);
+  
+      const maxRows = Math.max(
+        ...fieldNames.map((field) =>
+          Array.isArray(fields[field]) ? fields[field].length : 1
+        )
+      );
+  
+      const headers = ["Document Name", ...fieldNames];
+  
+      // Header Row
+      headers.forEach((header, colIndex) => {
+        const cellRef = XLSX.utils.encode_cell({ r: 0, c: colIndex });
+        ws[cellRef] = {
+          v: header,
+          s: headerStyle(),
+        };
+      });
+  
+      const merges = [];
+  
+      for (let r = 0; r < maxRows; r++) {
+        const rowIndex = r + 1;
+  
+        // Document Name column
+        ws[XLSX.utils.encode_cell({ r: rowIndex, c: 0 })] = {
+          v: r === 0 ? documentName : "",
+          s: cellStyle(),
+        };
+  
+        fieldNames.forEach((field, colIndex) => {
+          const valueArray = Array.isArray(fields[field])
+            ? fields[field]
+            : [fields[field]];
+  
+          const value = valueArray[r]?.value ?? "";
+  
+          ws[XLSX.utils.encode_cell({ r: rowIndex, c: colIndex + 1 })] = {
+            v: value,
+            s: cellStyle(),
+          };
         });
-
-        ws["!merges"] = merges;
-
-        ws["!cols"] = [
-            { wch: 28 },
-            { wch: 30 },
-            { wch: 70 },
-        ];
-
-        XLSX.utils.book_append_sheet(wb, ws, "Extracted Data");
-        XLSX.writeFile(wb, `${filename}_extracted.xlsx`);
+      }
+  
+      // Merge Document Name vertically
+      if (maxRows > 1) {
+        merges.push({
+          s: { r: 1, c: 0 },
+          e: { r: maxRows, c: 0 },
+        });
+      }
+  
+      // Merge special fields vertically if single value
+      specialMergeFields.forEach((field) => {
+        const fieldIndex = headers.indexOf(field);
+        const values = fields[field];
+  
+        if (
+          fieldIndex !== -1 &&
+          (!Array.isArray(values) || values.length <= 1) &&
+          maxRows > 1
+        ) {
+          merges.push({
+            s: { r: 1, c: fieldIndex },
+            e: { r: maxRows, c: fieldIndex },
+          });
+        }
+      });
+  
+      ws["!ref"] = XLSX.utils.encode_range({
+        s: { r: 0, c: 0 },
+        e: { r: maxRows, c: headers.length - 1 },
+      });
+  
+      ws["!merges"] = merges;
+  
+      ws["!cols"] = headers.map(() => ({ wch: 28 }));
+  
+      XLSX.utils.book_append_sheet(wb, ws, "Mortgage Extracted Data");
+      XLSX.writeFile(wb, `${documentName}_extracted.xlsx`);
     };
     /* =========================
        TABLE DATA (Like Dashboard)
@@ -288,27 +288,61 @@ const BatchDashboard = () => {
             value: val,
         }));
     };
-    const cellStyle = () => ({
-        alignment: { vertical: "top", wrapText: true },
-        border: {
-            top: { style: "thin" },
-            bottom: { style: "thin" },
-            left: { style: "thin" },
-            right: { style: "thin" },
-        },
-    });
-    const headerStyle = () => ({
-        font: { bold: true, color: { rgb: "FFFFFF" } },
-        fill: { fgColor: { rgb: "217346" } },
-        alignment: { horizontal: "center", vertical: "center", wrapText: true },
-        border: {
-            top: { style: "thin" },
-            bottom: { style: "thin" },
-            left: { style: "thin" },
-            right: { style: "thin" },
-        },
-    });
+  // Header Style
+  const headerStyle = () => ({
+    font: { bold: true, color: { rgb: "FFFFFF" } },
+    fill: { fgColor: { rgb: "217346" } },
+    alignment: { horizontal: "center", vertical: "center", wrapText: true },
+    border: {
+      top: { style: "thin" },
+      bottom: { style: "thin" },
+      left: { style: "thin" },
+      right: { style: "thin" },
+    },
+  });
 
+  // Normal Cell Style
+  const cellStyle = () => ({
+    alignment: { vertical: "top", wrapText: true },
+    border: {
+      top: { style: "thin" },
+      bottom: { style: "thin" },
+      left: { style: "thin" },
+      right: { style: "thin" },
+    },
+  });
+  const buildMortgagePreviewRows = (json, documentName) => {
+    if (!json) return [];
+
+    const fields = json.fields || {};
+    const fieldNames = Object.keys(fields);
+
+    const maxRows = Math.max(
+      ...fieldNames.map((field) =>
+        Array.isArray(fields[field]) ? fields[field].length : 1
+      )
+    );
+
+    const rows = [];
+
+    for (let r = 0; r < maxRows; r++) {
+      const row = {};
+
+      row["Document Name"] = r === 0 ? documentName : "";
+
+      fieldNames.forEach((field) => {
+        const valueArray = Array.isArray(fields[field])
+          ? fields[field]
+          : [fields[field]];
+
+        row[field] = valueArray[r]?.value ?? "";
+      });
+
+      rows.push(row);
+    }
+
+    return rows;
+  };
     const columns = [
         {
             title: "File",
@@ -383,6 +417,54 @@ const BatchDashboard = () => {
 
     const selectedItem =
         selectedKey !== null ? batchData[selectedKey] : null;
+ /* =========================
+     Excel Modal Preview Data
+  ========================= */
+  const excelPreviewRows = selectedExcelData
+    ? buildExcelRows(selectedExcelData.json)
+    : [];
+
+  const excelPreviewColumns = [
+    {
+      title: "Field Name",
+      dataIndex: "Field Name",
+      width: 200,
+      render: (text) => <strong>{text}</strong>,
+    },
+    {
+      title: "Value",
+      dataIndex: "Value",
+      width: 320,
+    },
+    {
+      title: "Confidence Score",
+      dataIndex: "Confidence Score",
+      width: 140,
+      render: (score) => {
+        if (!score) return "—";
+        const num = parseInt(score, 10);
+        const color = num > 80 ? "green" : num > 50 ? "orange" : "red";
+        return <Tag color={color}>{score}</Tag>;
+      },
+    },
+    {
+      title: "LLM Confidence Score",
+      dataIndex: "LLM Confidence Score",
+      width: 140,
+      render: (score) => {
+        if (!score) return "—";
+        const num = parseInt(score, 10);
+        const color = num > 80 ? "green" : num > 50 ? "orange" : "red";
+        return <Tag color={color}>{score}</Tag>;
+      },
+    },
+    {
+      title: "Page Number",
+      dataIndex: "Page Number",
+      width: 110,
+      render: (page) => (page !== "" && page !== undefined ? page : "—"),
+    },
+  ];
 
     /* =========================
        RENDER
@@ -517,70 +599,121 @@ const BatchDashboard = () => {
                 </Upload.Dragger>
             </Modal>
 
-            {/* Excel Modal */}
-            <Modal
-                title={
-                    <Row justify="space-between" align="middle">
-                        <Col><FileExcelOutlined style={{ color: "#217346", marginRight: 8 }} />Extracted Data (Excel Preview)</Col>
+         
+              {/* Excel Preview Modal */}
+                  {/* Excel Modal — EXACT SAME DESIGN AS DASHBOARD */}
+                  <Modal
+                    title={
+                      <Row justify="space-between" align="middle">
                         <Col>
-                            <Button
-                                type="primary"
-                                icon={<DownloadOutlined />}
-                                onClick={() => downloadExcel(selectedExcelData)}
-                                style={{ marginRight: 24 }}
-                            >
-                                Download Excel
-                            </Button>
+                          <FileExcelOutlined
+                            style={{ color: "#217346", marginRight: 8 }}
+                          />
+                          Extracted Data (Excel Preview)
                         </Col>
-                    </Row>
-                }
-                open={excelModalOpen}
-                onCancel={() => setExcelModalOpen(false)}
-                footer={null}
-                width={860}
-            >
-                {selectedExcelData && (() => {
-                    const rows = buildExcelRows(selectedExcelData);
-                    const excelColumns = [
+                        <Col>
+                          <Button
+                            type="primary"
+                            icon={<DownloadOutlined />}
+                            onClick={() =>
+                              handleDownloadExcel(
+                                selectedExcelData?.json,
+                                selectedExcelData?.documentName
+                              )
+                            }
+                            style={{ marginRight: 24 }}
+                          >
+                            Download Excel
+                          </Button>
+                        </Col>
+                      </Row>
+                    }
+                    open={excelModalOpen}
+                    onCancel={() => {
+                      setExcelModalOpen(false);
+                      setSelectedExcelData(null);
+                    }}
+                    footer={null}
+                    width={860}
+                  >
+                    <Table
+                      rowKey={(_, index) => index}
+                      columns={[
                         {
-                            title: "Field", dataIndex: "Field", key: "Field", width: 220,
-                            onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
+                          title: "Document Name",
+                          dataIndex: "Document Name",
+                          onHeaderCell: () => ({
+                            style: { backgroundColor: "#217346", color: "#fff" },
+                          }),
+                          render: (value, row, index) => {
+                            const rowCount = buildMortgagePreviewRows(
+                              selectedExcelData?.json,
+                              selectedExcelData?.documentName
+                            ).length;
+            
+                            return {
+                              children: value,
+                              props: {
+                                rowSpan: index === 0 ? rowCount : 0,
+                              },
+                            };
+                          },
                         },
-                        {
-                            title: "Value", dataIndex: "Value", key: "Value",
-                            render: (val) => <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{val}</span>,
-                            onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
-                        },
-                        // {
-                        //   title: "Confidence Score", dataIndex: "Confidence Score", key: "conf", width: 140,
-                        //   render: (val) => {
-                        //     if (!val) return null;
-                        //     const num = parseInt(val);
-                        //     const color = num > 80 ? "green" : num > 50 ? "orange" : "red";
-                        //     return <Tag color={color}>{val}</Tag>;
-                        //   },
-                        //   onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
-                        // },
-                        // {
-                        //   title: "Page", dataIndex: "Page", key: "page", width: 70,
-                        //   render: (val) => val ? <Tag>{val}</Tag> : null,
-                        //   onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
-                        // },
-                    ];
-                    return (
-                        <Table
-                            columns={excelColumns}
-                            dataSource={rows.map((r, i) => ({ ...r, key: i }))}
-                            pagination={{ pageSize: 15 }}
-                            size="small"
-                            bordered
-                            scroll={{ y: 420 }}
-                        />
-                    );
-                })()}
-            </Modal>
+            
+                        ...Object.keys(selectedExcelData?.json?.fields || {}).map((field) => ({
+                          title: field,
+                          dataIndex: field,
+                          onHeaderCell: () => ({
+                            style: { backgroundColor: "#217346", color: "#fff" },
+                          }),
+            
+                          render: (value, row, index) => {
+                            const rows = buildMortgagePreviewRows(
+                              selectedExcelData?.json,
+                              selectedExcelData?.documentName
+                            );
+            
+                            const specialFields = [
+                              "Current Mortgagee Company",
+                              "Address of Mortgagee Company",
+                            ];
+            
+                            if (specialFields.includes(field)) {
+                              const rowCount = rows.length;
+            
+                              return {
+                                children: value,
+                                props: {
+                                  rowSpan: index === 0 ? rowCount : 0,
+                                },
+                              };
+                            }
+            
+                            return {
+                              children: (
+                                <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                                  {value}
+                                </span>
+                              ),
+                              props: {
+                                rowSpan: 1,
+                              },
+                            };
+                          },
+                        })),
+                      ]}
+                      dataSource={buildMortgagePreviewRows(
+                        selectedExcelData?.json,
+                        selectedExcelData?.documentName
+                      )}
+                      pagination={{ pageSize: 10 }}
+                      bordered
+                      size="small"
+                      scroll={{ x: true }}
+                    />
+                  </Modal>
         </Container>
     );
 };
 
-export default BatchDashboard;
+export default BatchDashboardMortgage;
