@@ -266,6 +266,99 @@ const BatchDashboard = () => {
         XLSX.utils.book_append_sheet(wb, ws, "Extracted Data");
         XLSX.writeFile(wb, `${filename}_extracted.xlsx`);
     };
+
+    const downloadConsolidatedExcel = () => {
+        if (!batchData.length) {
+            message.warning("No batch data available to download");
+            return;
+        }
+
+        const wb = XLSX.utils.book_new();
+        const ws = {};
+        const headers = ["Document Name", "Field", "Value"];
+        const merges = [];
+        let rowIndex = 0;
+
+        headers.forEach((header, colIndex) => {
+            const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
+            ws[cellRef] = {
+                v: header,
+                s: headerStyle(),
+            };
+        });
+
+        rowIndex += 1;
+
+        batchData.forEach((item, batchIndex) => {
+            const json = item?.data;
+            if (!json) return;
+
+            const fields = json.fields || {};
+            const documentName = json?.metadata?.document_name || "—";
+            const docStartRow = rowIndex;
+
+            Object.entries(fields).forEach(([fieldName, data]) => {
+                const values = Array.isArray(data?.value)
+                    ? data.value
+                    : [data?.value];
+                const fieldStartRow = rowIndex;
+
+                values.forEach((val, valueIndex) => {
+                    ws[XLSX.utils.encode_cell({ r: rowIndex, c: 0 })] = {
+                        v: valueIndex === 0 ? documentName : "",
+                        s: cellStyle(),
+                    };
+
+                    ws[XLSX.utils.encode_cell({ r: rowIndex, c: 1 })] = {
+                        v: valueIndex === 0 ? fieldName : "",
+                        s: cellStyle(),
+                    };
+
+                    ws[XLSX.utils.encode_cell({ r: rowIndex, c: 2 })] = {
+                        v: val ?? "",
+                        s: cellStyle(),
+                    };
+
+                    rowIndex += 1;
+                });
+
+                const fieldEndRow = rowIndex - 1;
+                if (fieldEndRow > fieldStartRow) {
+                    merges.push({
+                        s: { r: fieldStartRow, c: 1 },
+                        e: { r: fieldEndRow, c: 1 },
+                    });
+                }
+            });
+
+            const docEndRow = rowIndex - 1;
+            if (docEndRow > docStartRow) {
+                merges.push({
+                    s: { r: docStartRow, c: 0 },
+                    e: { r: docEndRow, c: 0 },
+                });
+            }
+
+            if (batchIndex < batchData.length - 1) {
+                rowIndex += 1;
+            }
+        });
+
+        ws["!ref"] = XLSX.utils.encode_range({
+            s: { r: 0, c: 0 },
+            e: { r: Math.max(rowIndex - 1, 0), c: 2 },
+        });
+
+        ws["!merges"] = merges;
+        ws["!cols"] = [
+            { wch: 28 },
+            { wch: 30 },
+            { wch: 70 },
+        ];
+
+        XLSX.utils.book_append_sheet(wb, ws, "Consolidated Data");
+        XLSX.writeFile(wb, "consolidated_extracted_data.xlsx");
+    };
     /* =========================
        TABLE DATA (Like Dashboard)
     ========================= */
@@ -398,6 +491,15 @@ const BatchDashboard = () => {
 
             <Row>
                 <Col span={24} style={{ textAlign: "right", marginTop: 16 }}>
+                    <Button
+                        type="primary"
+                        icon={<DownloadOutlined />}
+                        onClick={downloadConsolidatedExcel}
+                        disabled={!batchData.length}
+                        style={{ marginRight: 8 }}
+                    >
+                        Download Excel
+                    </Button>
                     <Button
                         type="primary"
                         icon={<UploadOutlined />}

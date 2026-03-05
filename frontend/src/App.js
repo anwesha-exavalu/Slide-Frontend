@@ -51,9 +51,9 @@ const MyMenu = ({ collapsed }) => {
        <Menu.Item key="3" icon={<FileTextOutlined />} title={"Batch Dashboard wind mitigation"}>
         {!collapsed ? <Link to="/batch-dashboard-windmit" style={{ textDecoration: 'none' }}>Batch Dashboard Wind Mitigation</Link> : <Link to="/batch-dashboard-windmit" style={{ textDecoration: 'none' }} />}
       </Menu.Item>
-       {/* <Menu.Item key="4" icon={<FileTextOutlined />} title={"Batch Dashboard Mortgage"}>
+       <Menu.Item key="4" icon={<FileTextOutlined />} title={"Batch Dashboard Mortgage"}>
         {!collapsed ? <Link to="/batch-dashboard-mortgage" style={{ textDecoration: 'none' }}>Batch Dashboard Mortgage</Link> : <Link to="/batch-dashboard-mortgage" style={{ textDecoration: 'none' }} />}
-      </Menu.Item> */}
+      </Menu.Item>
        <Menu.Item key="5" icon={<MailOutlined />} title={"Email"}>
         {!collapsed ? <Link to="/email" style={{ textDecoration: 'none' }}>Email</Link> : <Link to="/email" style={{ textDecoration: 'none' }} />}
       </Menu.Item>

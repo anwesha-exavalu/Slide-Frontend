@@ -531,6 +531,24 @@ const EmailDashboard = () => {
             message.error("Failed to download file");
         }
     };
+    const fallbackCopy = (text) => {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    try {
+        document.execCommand("copy");
+        message.success("JSON copied to clipboard");
+    } catch (err) {
+        message.error("Copy failed");
+    }
+
+    document.body.removeChild(textarea);
+};
     return (
         <Container>
             <div style={{ marginBottom: 12, display: "flex", justifyContent: "flex-end", gap: 10 }}>
@@ -677,10 +695,20 @@ const EmailDashboard = () => {
                     <Button
                         size="small"
                         onClick={() => {
-                            navigator.clipboard.writeText(
-                               JSON.stringify(selectedJson?.cleaned_json || selectedJson, null, 2)
+                            const textToCopy = JSON.stringify(
+                                selectedJson?.cleaned_json || selectedJson,
+                                null,
+                                2
                             );
-                            message.success("JSON copied to clipboard");
+
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                navigator.clipboard
+                                    .writeText(textToCopy)
+                                    .then(() => message.success("JSON copied to clipboard"))
+                                    .catch(() => fallbackCopy(textToCopy));
+                            } else {
+                                fallbackCopy(textToCopy);
+                            }
                         }}
                     >
                         Copy JSON
