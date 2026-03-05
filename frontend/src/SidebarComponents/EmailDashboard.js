@@ -678,7 +678,7 @@ const EmailDashboard = () => {
                         size="small"
                         onClick={() => {
                             navigator.clipboard.writeText(
-                                JSON.stringify(selectedJson, null, 2)
+                               JSON.stringify(selectedJson?.cleaned_json || selectedJson, null, 2)
                             );
                             message.success("JSON copied to clipboard");
                         }}
@@ -692,15 +692,15 @@ const EmailDashboard = () => {
                     style={{
                         maxHeight: "500px",
                         overflow: "auto",
-                        whiteSpace: "pre-wrap",     // ✅ wrap long lines
-                        wordBreak: "break-word",    // ✅ prevent overflow
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
                         background: "#f5f5f5",
                         padding: 12,
                         borderRadius: 6,
                         fontSize: 12,
                     }}
                 >
-                    {JSON.stringify(selectedJson, null, 2)}
+                    {JSON.stringify(selectedJson?.cleaned_json || selectedJson, null, 2)}
                 </pre>
             </Modal>
 
