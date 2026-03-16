@@ -624,7 +624,7 @@ const DashboardMortgage = () => {
                             </Col>
 
                             <Col span={10} style={{ textAlign: "right" }}>
-                              <Tag
+                              {/* <Tag
                                 color={
                                   fieldItem.confidence_score > 0.8
                                     ? "green"
@@ -638,7 +638,24 @@ const DashboardMortgage = () => {
                                   (fieldItem.confidence_score || 0) * 100
                                 )}
                                 %
-                              </Tag>
+                              </Tag> */}
+
+                              {fieldItem.confidence_level ? (
+                                <Tag
+                                  color={
+                                    fieldItem.confidence_level.toLowerCase() ===
+                                    "high"
+                                      ? "green"
+                                      : fieldItem.confidence_level.toLowerCase() ===
+                                        "medium"
+                                        ? "orange"
+                                        : "red"
+                                  }
+                                >
+                                  Confidence Level: {fieldItem.confidence_level}
+                                </Tag>
+                              ) : null}
+
                               {/* <Tag
                                 color={
                                   fieldItem.llm_confidence_score > 0.8

@@ -518,7 +518,7 @@ const headerStyle = () => ({
                     </Col>
 
                     <Col span={10} style={{ textAlign: "right" }}>
-                      <Tag
+                      {/* <Tag
                         color={
                           item.confidence_score > 0.8
                             ? "green"
@@ -529,7 +529,22 @@ const headerStyle = () => ({
                       >
                         Confidence:{" "}
                         {Math.round(item.confidence_score * 100)}%
-                      </Tag>
+                      </Tag> */}
+
+                      {item.confidence_level ? (
+                        <Tag
+                          color={
+                            item.confidence_level.toLowerCase() === "high"
+                              ? "green"
+                              : item.confidence_level.toLowerCase() === "medium"
+                                ? "orange"
+                                : "red"
+                          }
+                        >
+                          Confidence Level: {item.confidence_level}
+                        </Tag>
+                      ) : null}
+
                       {/* <Tag
                         color={
                           item.llm_confidence_score > 0.8
