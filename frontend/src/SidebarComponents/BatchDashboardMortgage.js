@@ -127,6 +127,7 @@ const normalizePolicyEntries = (rawPolicies) => {
         if (!borrowers.length) {
             normalized.push({
                 value: policyNumber ? `Policy Number: ${policyNumber}` : "",
+                confidence_level: policyNumberObj?.confidence_level,
                 confidence_score: policyNumberObj?.confidence_score,
                 llm_confidence_score: policyNumberObj?.llm_confidence_score,
                 page: policyNumberObj?.page,
@@ -149,6 +150,11 @@ const normalizePolicyEntries = (rawPolicies) => {
 
             normalized.push({
                 value: combinedValue,
+                confidence_level: firstDefined(
+                    nameObj?.confidence_level,
+                    addressObj?.confidence_level,
+                    policyNumberObj?.confidence_level
+                ),
                 confidence_score: firstDefined(
                     nameObj?.confidence_score,
                     addressObj?.confidence_score,
@@ -253,10 +259,43 @@ const buildDetailRows = (fields) =>
             id: `${i}-${j}`,
             fieldName: j === 0 ? fieldName : "",
             value: entry?.value ?? "",
+            confidence_level: entry?.confidence_level,
             confidence_score: entry?.confidence_score,
             page: entry?.page,
         }));
     });
+
+const getConfidenceDisplay = (item = {}) => {
+    const rawLevel = item?.confidence_level;
+    if (typeof rawLevel === "string" && rawLevel.trim()) {
+        const normalizedLevel = rawLevel.trim().toLowerCase();
+        const formattedLevel =
+            normalizedLevel.charAt(0).toUpperCase() + normalizedLevel.slice(1);
+        const color =
+            normalizedLevel === "high"
+                ? "green"
+                : normalizedLevel === "medium"
+                ? "orange"
+                : normalizedLevel === "low"
+                ? "red"
+                : "blue";
+
+        return { value: formattedLevel, color };
+    }
+
+    const rawScore = item?.confidence_score;
+    const score =
+        typeof rawScore === "number" ? rawScore : Number.parseFloat(rawScore);
+
+    if (!Number.isNaN(score)) {
+        return {
+            value: `${Math.round(score * 100)}%`,
+            color: score > 0.8 ? "green" : score > 0.5 ? "orange" : "red",
+        };
+    }
+
+    return null;
+};
 
 const BatchDashboardMortgage = () => {
     const [batchData, setBatchData] = useState([]);
@@ -645,20 +684,17 @@ const BatchDashboardMortgage = () => {
                                         </Col>
 
                                         <Col span={10} style={{ textAlign: "right" }}>
-                                            <Tag
-                                                color={
-                                                    item.confidence_score > 0.8
-                                                        ? "green"
-                                                        : item.confidence_score > 0.5
-                                                        ? "orange"
-                                                        : "red"
-                                                }
-                                            >
-                                                Confidence:{" "}
-                                                {item.confidence_score != null
-                                                    ? `${Math.round(item.confidence_score * 100)}%`
-                                                    : "-"}
-                                            </Tag>
+                                            {(() => {
+                                                const confidenceDisplay =
+                                                    getConfidenceDisplay(item);
+                                                if (!confidenceDisplay) return null;
+
+                                                return (
+                                                    <Tag color={confidenceDisplay.color}>
+                                                        Confidence: {confidenceDisplay.value}
+                                                    </Tag>
+                                                );
+                                            })()}
                                             <Tag>Page: {item.page ?? "-"}</Tag>
                                         </Col>
                                     </Row>

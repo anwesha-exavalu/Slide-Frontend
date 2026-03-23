@@ -601,6 +601,39 @@ const DashboardMortgage = () => {
     values: Array.isArray(values) ? values : [],
   }));
 
+  const getConfidenceDisplay = (fieldItem = {}) => {
+    const rawLevel = fieldItem?.confidence_level;
+    if (typeof rawLevel === "string" && rawLevel.trim()) {
+      const normalizedLevel = rawLevel.trim().toLowerCase();
+      const formattedLevel =
+        normalizedLevel.charAt(0).toUpperCase() + normalizedLevel.slice(1);
+
+      const color =
+        normalizedLevel === "high"
+          ? "green"
+          : normalizedLevel === "medium"
+            ? "orange"
+            : normalizedLevel === "low"
+              ? "red"
+              : "blue";
+
+      return { value: formattedLevel, color };
+    }
+
+    const rawScore = fieldItem?.confidence_score;
+    const score =
+      typeof rawScore === "number" ? rawScore : Number.parseFloat(rawScore);
+
+    if (!Number.isNaN(score)) {
+      return {
+        value: `${Math.round(score * 100)}%`,
+        color: score > 0.8 ? "green" : score > 0.5 ? "orange" : "red",
+      };
+    }
+
+    return null;
+  };
+
   /* =========================
      Excel Modal Preview Data
   ========================= */
@@ -738,37 +771,17 @@ const DashboardMortgage = () => {
                             </Col>
 
                             <Col span={10} style={{ textAlign: "right" }}>
-                              {/* <Tag
-                                color={
-                                  fieldItem.confidence_score > 0.8
-                                    ? "green"
-                                    : fieldItem.confidence_score > 0.5
-                                      ? "orange"
-                                      : "red"
-                                }
-                              >
-                                Confidence:{" "}
-                                {Math.round(
-                                  (fieldItem.confidence_score || 0) * 100
-                                )}
-                                %
-                              </Tag> */}
+                              {(() => {
+                                const confidenceDisplay =
+                                  getConfidenceDisplay(fieldItem);
+                                if (!confidenceDisplay) return null;
 
-                              {fieldItem.confidence_level ? (
-                                <Tag
-                                  color={
-                                    fieldItem.confidence_level.toLowerCase() ===
-                                    "high"
-                                      ? "green"
-                                      : fieldItem.confidence_level.toLowerCase() ===
-                                        "medium"
-                                        ? "orange"
-                                        : "red"
-                                  }
-                                >
-                                  Confidence Level: {fieldItem.confidence_level}
-                                </Tag>
-                              ) : null}
+                                return (
+                                  <Tag color={confidenceDisplay.color}>
+                                    Confidence: {confidenceDisplay.value}
+                                  </Tag>
+                                );
+                              })()}
 
                               {/* <Tag
                                 color={
