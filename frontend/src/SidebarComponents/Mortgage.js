@@ -146,9 +146,119 @@ const DashboardMortgage = () => {
   /* =========================
      Excel Helper: Build flat rows from llm_response
   ========================= */
+  const toArray = (value) => {
+    if (Array.isArray(value)) return value;
+    if (value === null || value === undefined) return [];
+    return [value];
+  };
+
+  const firstDefined = (...values) =>
+    values.find((val) => val !== undefined && val !== null && val !== "");
+
+  const toDisplayValue = (value) => {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "string") return value;
+    if (typeof value === "number" || typeof value === "boolean") {
+      return String(value);
+    }
+
+    try {
+      return JSON.stringify(value);
+    } catch (error) {
+      return "";
+    }
+  };
+
+  const normalizePolicyEntries = (rawPolicies) => {
+    const policies = toArray(rawPolicies);
+    const normalized = [];
+
+    policies.forEach((policy) => {
+      const policyNumberObj = policy?.policy_number || {};
+      const policyNumber = policyNumberObj?.value ?? "";
+      const borrowers = toArray(policy?.borrowers);
+
+      if (!borrowers.length) {
+        normalized.push({
+          value: policyNumber ? `Policy Number: ${policyNumber}` : "",
+          confidence_score: policyNumberObj?.confidence_score,
+          llm_confidence_score: policyNumberObj?.llm_confidence_score,
+          page: policyNumberObj?.page,
+          source: policyNumberObj?.source,
+        });
+        return;
+      }
+
+      borrowers.forEach((borrower) => {
+        const nameObj = borrower?.name || {};
+        const addressObj = borrower?.address || {};
+
+        const combinedValue = [
+          policyNumber ? `Policy Number: ${policyNumber}` : "",
+          nameObj?.value ? `Borrower: ${nameObj.value}` : "",
+          addressObj?.value ? `Address: ${addressObj.value}` : "",
+        ]
+          .filter(Boolean)
+          .join(" | ");
+
+        normalized.push({
+          value: combinedValue,
+          confidence_score: firstDefined(
+            nameObj?.confidence_score,
+            addressObj?.confidence_score,
+            policyNumberObj?.confidence_score
+          ),
+          llm_confidence_score: firstDefined(
+            nameObj?.llm_confidence_score,
+            addressObj?.llm_confidence_score,
+            policyNumberObj?.llm_confidence_score
+          ),
+          page: firstDefined(nameObj?.page, addressObj?.page, policyNumberObj?.page),
+          source: firstDefined(
+            nameObj?.source,
+            addressObj?.source,
+            policyNumberObj?.source
+          ),
+        });
+      });
+    });
+
+    return normalized;
+  };
+
+  const normalizeFieldEntries = (fieldName, rawValues) => {
+    if (fieldName === "Policies") {
+      return normalizePolicyEntries(rawValues);
+    }
+
+    return toArray(rawValues).map((entry) => {
+      if (entry && typeof entry === "object") {
+        if (Object.prototype.hasOwnProperty.call(entry, "value")) {
+          return entry;
+        }
+
+        return {
+          value: toDisplayValue(entry),
+        };
+      }
+
+      return {
+        value: toDisplayValue(entry),
+      };
+    });
+  };
+
+  const normalizeFields = (rawFields = {}) =>
+    Object.fromEntries(
+      Object.entries(rawFields).map(([fieldName, rawValues]) => [
+        fieldName,
+        normalizeFieldEntries(fieldName, rawValues),
+      ])
+    );
+
   const buildExcelRows = (json) => {
     if (!json) return [];
-    const fields = json.fields || {};
+    const fields = normalizeFields(json.fields || {});
     const rows = [];
 
     Object.entries(fields).forEach(([fieldName, values]) => {
@@ -189,7 +299,7 @@ const DashboardMortgage = () => {
     const wb = XLSX.utils.book_new();
     const ws = {};
 
-    const fields = json.fields || {};
+    const fields = normalizeFields(json.fields || {});
 
     const specialMergeFields = [
       "Current Mortgagee Company",
@@ -198,11 +308,13 @@ const DashboardMortgage = () => {
 
     const fieldNames = Object.keys(fields);
 
-    const maxRows = Math.max(
-      ...fieldNames.map((field) =>
-        Array.isArray(fields[field]) ? fields[field].length : 1
+    const maxRows = fieldNames.length
+      ? Math.max(
+        ...fieldNames.map((field) =>
+          Array.isArray(fields[field]) ? fields[field].length : 1
+        )
       )
-    );
+      : 1;
 
     const headers = ["Document Name", ...fieldNames];
 
@@ -333,14 +445,16 @@ const DashboardMortgage = () => {
   const buildMortgagePreviewRows = (json, documentName) => {
     if (!json) return [];
 
-    const fields = json.fields || {};
+    const fields = normalizeFields(json.fields || {});
     const fieldNames = Object.keys(fields);
 
-    const maxRows = Math.max(
-      ...fieldNames.map((field) =>
-        Array.isArray(fields[field]) ? fields[field].length : 1
+    const maxRows = fieldNames.length
+      ? Math.max(
+        ...fieldNames.map((field) =>
+          Array.isArray(fields[field]) ? fields[field].length : 1
+        )
       )
-    );
+      : 1;
 
     const rows = [];
 
@@ -473,7 +587,7 @@ const DashboardMortgage = () => {
   );
 
   const metadata = submission?.llm_response?.metadata || {};
-  const fields = submission?.llm_response?.fields || {};
+  const fields = normalizeFields(submission?.llm_response?.fields || {});
 
   const metaDataSource = Object.entries(metadata).map(([key, value], i) => ({
     key: i,
