@@ -168,7 +168,20 @@ const DashboardMortgage = () => {
       return "";
     }
   };
+  const getConfidenceValue = (obj) => {
+    if (!obj) return null;
 
+    if (obj.confidence_level) {
+      const level = obj.confidence_level.toLowerCase();
+      return level.charAt(0).toUpperCase() + level.slice(1);
+    }
+
+    if (obj.confidence_score !== undefined && obj.confidence_score !== null) {
+      return `${Math.round(obj.confidence_score * 100)}%`;
+    }
+
+    return null;
+  };
   const normalizePolicyEntries = (rawPolicies) => {
     const policies = toArray(rawPolicies);
     const normalized = [];
@@ -181,8 +194,12 @@ const DashboardMortgage = () => {
       if (!borrowers.length) {
         normalized.push({
           value: policyNumber ? `Policy Number: ${policyNumber}` : "",
-          confidence_score: policyNumberObj?.confidence_score,
-          llm_confidence_score: policyNumberObj?.llm_confidence_score,
+
+         
+          confidence_values: [
+            getConfidenceValue(policyNumberObj),
+          ].filter(Boolean),
+
           page: policyNumberObj?.page,
           source: policyNumberObj?.source,
         });
@@ -203,17 +220,18 @@ const DashboardMortgage = () => {
 
         normalized.push({
           value: combinedValue,
-          confidence_score: firstDefined(
-            nameObj?.confidence_score,
-            addressObj?.confidence_score,
-            policyNumberObj?.confidence_score
+
+          confidence_values: [
+            getConfidenceValue(policyNumberObj),
+            getConfidenceValue(nameObj),
+            getConfidenceValue(addressObj),
+          ].filter(Boolean),
+
+          page: firstDefined(
+            nameObj?.page,
+            addressObj?.page,
+            policyNumberObj?.page
           ),
-          llm_confidence_score: firstDefined(
-            nameObj?.llm_confidence_score,
-            addressObj?.llm_confidence_score,
-            policyNumberObj?.llm_confidence_score
-          ),
-          page: firstDefined(nameObj?.page, addressObj?.page, policyNumberObj?.page),
           source: firstDefined(
             nameObj?.source,
             addressObj?.source,
@@ -772,8 +790,16 @@ const DashboardMortgage = () => {
 
                             <Col span={10} style={{ textAlign: "right" }}>
                               {(() => {
-                                const confidenceDisplay =
-                                  getConfidenceDisplay(fieldItem);
+
+                                if (item.fieldName === "Policies" && fieldItem.confidence_values) {
+                                  return (
+                                    <Tag color="blue">
+                                      Confidence: {fieldItem.confidence_values.join(", ")}
+                                    </Tag>
+                                  );
+                                }
+
+                                const confidenceDisplay = getConfidenceDisplay(fieldItem);
                                 if (!confidenceDisplay) return null;
 
                                 return (

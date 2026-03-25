@@ -155,7 +155,7 @@ const Dashboard = () => {
           ? `${Math.round(data.confidence_score * 100)}%`
           : "—";
       const page = data?.page ?? "—";
-      const LLMConfidence= data?.llm_confidence_score != null
+      const LLMConfidence = data?.llm_confidence_score != null
         ? `${Math.round(data.llm_confidence_score * 100)}%`
         : "—";
       let combinedValue = "";
@@ -182,109 +182,109 @@ const Dashboard = () => {
     return rows;
   };
 
-const downloadExcel = (json,filename = `${json?.metadata?.document_name}`) => {
-  if (!json) return;
+  const downloadExcel = (json, filename = `${json?.metadata?.document_name}`) => {
+    if (!json) return;
 
-  const wb = XLSX.utils.book_new();
-  const ws = {};
+    const wb = XLSX.utils.book_new();
+    const ws = {};
 
-  const fields = json.fields || {};
-  const fieldNames = Object.keys(fields);
+    const fields = json.fields || {};
+    const fieldNames = Object.keys(fields);
 
-  const maxRows = Math.max(
-    ...fieldNames.map((field) =>
-      Array.isArray(fields[field]?.value)
-        ? fields[field].value.length
-        : 1
-    )
-  );
+    const maxRows = Math.max(
+      ...fieldNames.map((field) =>
+        Array.isArray(fields[field]?.value)
+          ? fields[field].value.length
+          : 1
+      )
+    );
 
-  const headers = ["Document Name", "Field", "Value"];
+    const headers = ["Document Name", "Field", "Value"];
 
-  // Header row
-  headers.forEach((header, colIndex) => {
-    const cellRef = XLSX.utils.encode_cell({ r: 0, c: colIndex });
-    ws[cellRef] = {
-      v: header,
-      s: headerStyle(),
-    };
-  });
-
-  const merges = [];
-  let rowIndex = 1;
-
-  Object.entries(fields).forEach(([fieldName, data]) => {
-    const values = Array.isArray(data?.value)
-      ? data.value
-      : [data?.value];
-
-    const startRow = rowIndex;
-
-    values.forEach((val, index) => {
-      ws[XLSX.utils.encode_cell({ r: rowIndex, c: 0 })] = {
-        v: index === 0 ? filename : "",
-        s: cellStyle(),
+    // Header row
+    headers.forEach((header, colIndex) => {
+      const cellRef = XLSX.utils.encode_cell({ r: 0, c: colIndex });
+      ws[cellRef] = {
+        v: header,
+        s: headerStyle(),
       };
-
-      ws[XLSX.utils.encode_cell({ r: rowIndex, c: 1 })] = {
-        v: index === 0 ? fieldName : "",
-        s: cellStyle(),
-      };
-
-      ws[XLSX.utils.encode_cell({ r: rowIndex, c: 2 })] = {
-        v: val ?? "",
-        s: cellStyle(),
-      };
-
-      rowIndex++;
     });
 
-    const endRow = rowIndex - 1;
+    const merges = [];
+    let rowIndex = 1;
 
-    if (endRow > startRow) {
+    Object.entries(fields).forEach(([fieldName, data]) => {
+      const values = Array.isArray(data?.value)
+        ? data.value
+        : [data?.value];
+
+      const startRow = rowIndex;
+
+      values.forEach((val, index) => {
+        ws[XLSX.utils.encode_cell({ r: rowIndex, c: 0 })] = {
+          v: index === 0 ? filename : "",
+          s: cellStyle(),
+        };
+
+        ws[XLSX.utils.encode_cell({ r: rowIndex, c: 1 })] = {
+          v: index === 0 ? fieldName : "",
+          s: cellStyle(),
+        };
+
+        ws[XLSX.utils.encode_cell({ r: rowIndex, c: 2 })] = {
+          v: val ?? "",
+          s: cellStyle(),
+        };
+
+        rowIndex++;
+      });
+
+      const endRow = rowIndex - 1;
+
+      if (endRow > startRow) {
+        merges.push({
+          s: { r: startRow, c: 1 },
+          e: { r: endRow, c: 1 },
+        });
+      }
+    });
+
+    // Merge Document Name column
+    if (rowIndex > 2) {
       merges.push({
-        s: { r: startRow, c: 1 },
-        e: { r: endRow, c: 1 },
+        s: { r: 1, c: 0 },
+        e: { r: rowIndex - 1, c: 0 },
       });
     }
-  });
 
-  // Merge Document Name column
-  if (rowIndex > 2) {
-    merges.push({
-      s: { r: 1, c: 0 },
-      e: { r: rowIndex - 1, c: 0 },
+    ws["!ref"] = XLSX.utils.encode_range({
+      s: { r: 0, c: 0 },
+      e: { r: rowIndex - 1, c: 2 },
     });
-  }
 
-  ws["!ref"] = XLSX.utils.encode_range({
-    s: { r: 0, c: 0 },
-    e: { r: rowIndex - 1, c: 2 },
+    ws["!merges"] = merges;
+
+    ws["!cols"] = [
+      { wch: 28 },
+      { wch: 30 },
+      { wch: 70 },
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, "Extracted Data");
+    XLSX.writeFile(wb, `${filename}_extracted.xlsx`);
+  };
+
+  const headerStyle = () => ({
+    font: { bold: true, color: { rgb: "FFFFFF" } },
+    fill: { fgColor: { rgb: "217346" } },
+    alignment: { horizontal: "center", vertical: "center", wrapText: true },
+    border: {
+      top: { style: "thin" },
+      bottom: { style: "thin" },
+      left: { style: "thin" },
+      right: { style: "thin" },
+    },
   });
-
-  ws["!merges"] = merges;
-
-  ws["!cols"] = [
-    { wch: 28 },
-    { wch: 30 },
-    { wch: 70 },
-  ];
-
-  XLSX.utils.book_append_sheet(wb, ws, "Extracted Data");
-  XLSX.writeFile(wb, `${filename}_extracted.xlsx`);
-};
-
-const headerStyle = () => ({
-  font: { bold: true, color: { rgb: "FFFFFF" } },
-  fill: { fgColor: { rgb: "217346" } },
-  alignment: { horizontal: "center", vertical: "center", wrapText: true },
-  border: {
-    top: { style: "thin" },
-    bottom: { style: "thin" },
-    left: { style: "thin" },
-    right: { style: "thin" },
-  },
-});
 
 
 
@@ -443,6 +443,41 @@ const headerStyle = () => ({
     fieldName: name,
     ...data,
   }));
+  const getConfidenceDisplay = (item = {}) => {
+    const rawLevel = item?.confidence_level;
+
+    if (typeof rawLevel === "string" && rawLevel.trim()) {
+      const normalized = rawLevel.toLowerCase();
+      const formatted =
+        normalized.charAt(0).toUpperCase() + normalized.slice(1);
+
+      const color =
+        normalized === "high"
+          ? "green"
+          : normalized === "medium"
+            ? "orange"
+            : normalized === "low"
+              ? "red"
+              : "blue";
+
+      return { value: formatted, color };
+    }
+
+    const rawScore = item?.confidence_score;
+    const score =
+      typeof rawScore === "number"
+        ? rawScore
+        : parseFloat(rawScore);
+
+    if (!isNaN(score)) {
+      return {
+        value: `${Math.round(score * 100)}%`,
+        color: score > 0.8 ? "green" : score > 0.5 ? "orange" : "red",
+      };
+    }
+
+    return null;
+  };
 
   /* =========================
      RENDER
@@ -531,19 +566,16 @@ const headerStyle = () => ({
                         {Math.round(item.confidence_score * 100)}%
                       </Tag> */}
 
-                      {item.confidence_level ? (
-                        <Tag
-                          color={
-                            item.confidence_level.toLowerCase() === "high"
-                              ? "green"
-                              : item.confidence_level.toLowerCase() === "medium"
-                                ? "orange"
-                                : "red"
-                          }
-                        >
-                          Confidence Level: {item.confidence_level}
-                        </Tag>
-                      ) : null}
+                      {(() => {
+                        const confidence = getConfidenceDisplay(item);
+                        if (!confidence) return null;
+
+                        return (
+                          <Tag color={confidence.color}>
+                            Confidence: {confidence.value}
+                          </Tag>
+                        );
+                      })()}
 
                       {/* <Tag
                         color={
