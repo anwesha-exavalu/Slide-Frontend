@@ -55,9 +55,9 @@ const MyTableComponent = ({ columns, dataSource, loading, selectedKey }) => {
                     style:
                         record.key === selectedKey
                             ? {
-                                  backgroundColor: "#e6f4ff",
-                                  transition: "background-color 0.3s ease",
-                              }
+                                backgroundColor: "#e6f4ff",
+                                transition: "background-color 0.3s ease",
+                            }
                             : {},
                 })}
                 components={{
@@ -114,7 +114,22 @@ const toDisplayValue = (value) => {
         return "";
     }
 };
+const getConfidenceValue = (obj) => {
+    if (!obj) return null;
 
+    // Prefer confidence_level
+    if (obj.confidence_level) {
+        const level = obj.confidence_level.toLowerCase();
+        return level.charAt(0).toUpperCase() + level.slice(1);
+    }
+
+    // Fallback to confidence_score
+    if (obj.confidence_score !== undefined && obj.confidence_score !== null) {
+        return `${Math.round(obj.confidence_score * 100)}%`;
+    }
+
+    return null;
+};
 const normalizePolicyEntries = (rawPolicies) => {
     const policies = toArray(rawPolicies);
     const normalized = [];
@@ -127,9 +142,12 @@ const normalizePolicyEntries = (rawPolicies) => {
         if (!borrowers.length) {
             normalized.push({
                 value: policyNumber ? `Policy Number: ${policyNumber}` : "",
-                confidence_level: policyNumberObj?.confidence_level,
-                confidence_score: policyNumberObj?.confidence_score,
-                llm_confidence_score: policyNumberObj?.llm_confidence_score,
+
+                // ✅ MULTIPLE CONFIDENCE
+                confidence_values: [
+                    getConfidenceValue(policyNumberObj),
+                ].filter(Boolean),
+
                 page: policyNumberObj?.page,
                 source: policyNumberObj?.source,
             });
@@ -150,22 +168,19 @@ const normalizePolicyEntries = (rawPolicies) => {
 
             normalized.push({
                 value: combinedValue,
-                confidence_level: firstDefined(
-                    nameObj?.confidence_level,
-                    addressObj?.confidence_level,
-                    policyNumberObj?.confidence_level
+
+                // 🔥 KEY CHANGE: ALL CONFIDENCES
+                confidence_values: [
+                    getConfidenceValue(policyNumberObj),
+                    getConfidenceValue(nameObj),
+                    getConfidenceValue(addressObj),
+                ].filter(Boolean),
+
+                page: firstDefined(
+                    nameObj?.page,
+                    addressObj?.page,
+                    policyNumberObj?.page
                 ),
-                confidence_score: firstDefined(
-                    nameObj?.confidence_score,
-                    addressObj?.confidence_score,
-                    policyNumberObj?.confidence_score
-                ),
-                llm_confidence_score: firstDefined(
-                    nameObj?.llm_confidence_score,
-                    addressObj?.llm_confidence_score,
-                    policyNumberObj?.llm_confidence_score
-                ),
-                page: firstDefined(nameObj?.page, addressObj?.page, policyNumberObj?.page),
                 source: firstDefined(
                     nameObj?.source,
                     addressObj?.source,
@@ -241,29 +256,36 @@ const buildMortgagePreviewRows = (json, documentName) => {
 };
 
 const buildDetailRows = (fields) =>
-    Object.entries(normalizeFields(fields || {})).flatMap(([fieldName, entries], i) => {
-        const data = Array.isArray(entries) ? entries : [];
-        if (!data.length) {
-            return [
-                {
-                    id: `${i}-0`,
-                    fieldName,
-                    value: "",
-                    confidence_score: null,
-                    page: null,
-                },
-            ];
-        }
+    Object.entries(normalizeFields(fields || {})).flatMap(
+        ([fieldName, entries], i) => {
+            const data = Array.isArray(entries) ? entries : [];
 
-        return data.map((entry, j) => ({
-            id: `${i}-${j}`,
-            fieldName: j === 0 ? fieldName : "",
-            value: entry?.value ?? "",
-            confidence_level: entry?.confidence_level,
-            confidence_score: entry?.confidence_score,
-            page: entry?.page,
-        }));
-    });
+            if (!data.length) {
+                return [
+                    {
+                        id: `${i}-0`,
+                        fieldName,
+                        value: "",
+                        confidence_score: null,
+                        page: null,
+                    },
+                ];
+            }
+
+            return data.map((entry, j) => ({
+                id: `${i}-${j}`,
+                fieldName: j === 0 ? fieldName : "",
+                value: entry?.value ?? "",
+
+                // ✅ IMPORTANT ADDITION
+                confidence_values: entry?.confidence_values,
+
+                confidence_level: entry?.confidence_level,
+                confidence_score: entry?.confidence_score,
+                page: entry?.page,
+            }));
+        }
+    );
 
 const getConfidenceDisplay = (item = {}) => {
     const rawLevel = item?.confidence_level;
@@ -275,10 +297,10 @@ const getConfidenceDisplay = (item = {}) => {
             normalizedLevel === "high"
                 ? "green"
                 : normalizedLevel === "medium"
-                ? "orange"
-                : normalizedLevel === "low"
-                ? "red"
-                : "blue";
+                    ? "orange"
+                    : normalizedLevel === "low"
+                        ? "red"
+                        : "blue";
 
         return { value: formattedLevel, color };
     }
@@ -685,8 +707,16 @@ const BatchDashboardMortgage = () => {
 
                                         <Col span={10} style={{ textAlign: "right" }}>
                                             {(() => {
-                                                const confidenceDisplay =
-                                                    getConfidenceDisplay(item);
+
+                                                if (item.fieldName === "Policies" && item.confidence_values) {
+                                                    return (
+                                                        <Tag color="blue">
+                                                            Confidence: {item.confidence_values.join(", ")}
+                                                        </Tag>
+                                                    );
+                                                }
+
+                                                const confidenceDisplay = getConfidenceDisplay(item);
                                                 if (!confidenceDisplay) return null;
 
                                                 return (
