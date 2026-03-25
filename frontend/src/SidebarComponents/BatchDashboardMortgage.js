@@ -863,7 +863,7 @@ const BatchDashboardMortgage = () => {
                         selectedExcelData?.json,
                         selectedExcelData?.documentName
                     )}
-                    pagination={{ pageSize: 10 }}
+                    pagination={{ pageSize: 100 }}
                     bordered
                     size="small"
                     scroll={{ x: true }}

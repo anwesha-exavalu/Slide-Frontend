@@ -673,7 +673,7 @@ const BatchDashboard = () => {
                         <Table
                             columns={excelColumns}
                             dataSource={rows.map((r, i) => ({ ...r, key: i }))}
-                            pagination={{ pageSize: 15 }}
+                            pagination={{ pageSize: 100 }}
                             size="small"
                             bordered
                             scroll={{ y: 420 }}
