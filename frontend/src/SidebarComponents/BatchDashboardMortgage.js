@@ -707,8 +707,8 @@ const BatchDashboardMortgage = () => {
 
                                         <Col span={10} style={{ textAlign: "right" }}>
                                             {(() => {
-
-                                                if (item.fieldName === "Policies" && item.confidence_values) {
+                                               
+                                                if (item.confidence_values && item.confidence_values.length) {
                                                     return (
                                                         <Tag color="blue">
                                                             Confidence: {item.confidence_values.join(", ")}
@@ -716,6 +716,7 @@ const BatchDashboardMortgage = () => {
                                                     );
                                                 }
 
+                                                // 🔹 Default behavior
                                                 const confidenceDisplay = getConfidenceDisplay(item);
                                                 if (!confidenceDisplay) return null;
 
