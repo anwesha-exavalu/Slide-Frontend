@@ -310,7 +310,7 @@ const Dashboard = () => {
     date: item.last_modified
       ? new Date(item.last_modified).toLocaleDateString()
       : "—",
-    source: item.pdf_s3_uri,
+    source: item.document_uri,
     json: item.llm_response,
     output: item.submission_id,
   }));

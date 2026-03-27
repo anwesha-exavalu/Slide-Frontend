@@ -444,7 +444,7 @@ const DashboardMortgage = () => {
     date: item.last_modified
       ? new Date(item.last_modified).toLocaleDateString()
       : "—",
-    source: item.pdf_s3_uri,
+    source: item.document_uri,
     json: item.llm_response,
     excelJson: item.llm_response,
     documentName: item.llm_response?.metadata?.document_name || "extracted",
