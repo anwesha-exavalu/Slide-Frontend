@@ -277,7 +277,6 @@ const buildDetailRows = (fields) =>
                 fieldName: j === 0 ? fieldName : "",
                 value: entry?.value ?? "",
 
-                // ✅ IMPORTANT ADDITION
                 confidence_values: entry?.confidence_values,
 
                 confidence_level: entry?.confidence_level,
@@ -286,6 +285,45 @@ const buildDetailRows = (fields) =>
             }));
         }
     );
+const getMaxConfidence = (values = []) => {
+    if (!values.length) return null;
+
+    let maxLevelScore = -1;
+    let maxPercent = -1;
+    let bestValue = null;
+
+    values.forEach((val) => {
+        if (!val) return;
+
+        if (!val.includes("%")) {
+            const level = val.toLowerCase();
+
+            const score =
+                level === "high" ? 3 :
+                    level === "medium" ? 2 :
+                        level === "low" ? 1 : 0;
+
+            if (score > maxLevelScore) {
+                maxLevelScore = score;
+                bestValue = val;
+            }
+        }
+
+        // Case 2: Percentage
+        if (val.includes("%")) {
+            const num = parseInt(val);
+            if (num > maxPercent) {
+                maxPercent = num;
+            }
+        }
+    });
+
+
+    if (bestValue) return bestValue;
+    if (maxPercent !== -1) return `${maxPercent}%`;
+
+    return null;
+};
 
 const getConfidenceDisplay = (item = {}) => {
     const rawLevel = item?.confidence_level;
@@ -651,7 +689,7 @@ const BatchDashboardMortgage = () => {
                         icon={<UploadOutlined />}
                         onClick={() => setIsModalOpen(true)}
                     >
-                        Upload Batch PDFs
+                        Upload Batch PDF / TIF / TIFF 
                     </Button>
                 </Col>
             </Row>
@@ -707,16 +745,32 @@ const BatchDashboardMortgage = () => {
 
                                         <Col span={10} style={{ textAlign: "right" }}>
                                             {(() => {
-                                               
+
                                                 if (item.confidence_values && item.confidence_values.length) {
+                                                    const maxConfidence = getMaxConfidence(item.confidence_values);
+
+                                                    const color =
+                                                        maxConfidence?.toLowerCase?.() === "high"
+                                                            ? "green"
+                                                            : maxConfidence?.toLowerCase?.() === "medium"
+                                                                ? "orange"
+                                                                : maxConfidence?.toLowerCase?.() === "low"
+                                                                    ? "red"
+                                                                    : maxConfidence?.includes("%")
+                                                                        ? parseInt(maxConfidence) > 80
+                                                                            ? "green"
+                                                                            : parseInt(maxConfidence) > 50
+                                                                                ? "orange"
+                                                                                : "red"
+                                                                        : "blue";
+
                                                     return (
-                                                        <Tag color="blue">
-                                                            Confidence: {item.confidence_values.join(", ")}
+                                                        <Tag color={color}>
+                                                            Confidence: {maxConfidence}
                                                         </Tag>
                                                     );
                                                 }
-
-                                                // 🔹 Default behavior
+                                             
                                                 const confidenceDisplay = getConfidenceDisplay(item);
                                                 if (!confidenceDisplay) return null;
 
@@ -748,10 +802,26 @@ const BatchDashboardMortgage = () => {
                 confirmLoading={loading}
             >
                 <Upload.Dragger
-                    accept=".pdf"
+                    accept=".pdf,.tif,.tiff"
                     multiple
                     fileList={fileList}
-                    beforeUpload={() => false}
+                    beforeUpload={(file) => {
+                        const fileName = file.name.toLowerCase();
+
+                        const isValid =
+                            file.type === "application/pdf" ||
+                            file.type === "image/tiff" ||
+                            fileName.endsWith(".pdf") ||
+                            fileName.endsWith(".tif") ||
+                            fileName.endsWith(".tiff");
+
+                        if (!isValid) {
+                            message.error("Only PDF, TIF, TIFF files are allowed");
+                            return Upload.LIST_IGNORE;
+                        }
+
+                        return false; // prevent auto upload (keep your existing behavior)
+                    }}
                     onChange={({ fileList: updatedFileList }) =>
                         setFileList(updatedFileList)
                     }
@@ -759,7 +829,7 @@ const BatchDashboardMortgage = () => {
                     <p className="ant-upload-drag-icon">
                         <UploadOutlined />
                     </p>
-                    <p>Click or drag multiple PDF files to upload</p>
+                    <p>Click or drag PDF / TIF / TIFF files to upload</p>
                 </Upload.Dragger>
             </Modal>
 

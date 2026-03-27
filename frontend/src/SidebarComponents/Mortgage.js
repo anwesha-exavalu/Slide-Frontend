@@ -195,7 +195,7 @@ const DashboardMortgage = () => {
         normalized.push({
           value: policyNumber ? `Policy Number: ${policyNumber}` : "",
 
-         
+
           confidence_values: [
             getConfidenceValue(policyNumberObj),
           ].filter(Boolean),
@@ -651,7 +651,41 @@ const DashboardMortgage = () => {
 
     return null;
   };
+  const getMaxConfidence = (values = []) => {
+    if (!values.length) return null;
 
+    let maxScore = -1;
+    let maxLabel = null;
+
+    values.forEach((val) => {
+      if (!val) return;
+
+      // Case 1: Level
+      if (typeof val === "string" && !val.includes("%")) {
+        const level = val.toLowerCase();
+        const score =
+          level === "high" ? 3 :
+            level === "medium" ? 2 :
+              level === "low" ? 1 : 0;
+
+        if (score > maxScore) {
+          maxScore = score;
+          maxLabel = val;
+        }
+      }
+
+      // Case 2: Percentage
+      if (val.includes("%")) {
+        const num = parseInt(val);
+        if (num > maxScore) {
+          maxScore = num;
+          maxLabel = val;
+        }
+      }
+    });
+
+    return maxLabel;
+  };
   /* =========================
      Excel Modal Preview Data
   ========================= */
@@ -792,13 +826,30 @@ const DashboardMortgage = () => {
                               {(() => {
 
                                 if (item.fieldName === "Policies" && fieldItem.confidence_values) {
+                                  const maxConfidence = getMaxConfidence(fieldItem.confidence_values);
+
                                   return (
-                                    <Tag color="blue">
-                                      Confidence: {fieldItem.confidence_values.join(", ")}
+                                    <Tag
+                                      color={
+                                        maxConfidence?.toLowerCase?.() === "high"
+                                          ? "green"
+                                          : maxConfidence?.toLowerCase?.() === "medium"
+                                            ? "orange"
+                                            : maxConfidence?.toLowerCase?.() === "low"
+                                              ? "red"
+                                              : maxConfidence?.includes("%")
+                                                ? parseInt(maxConfidence) > 80
+                                                  ? "green"
+                                                  : parseInt(maxConfidence) > 50
+                                                    ? "orange"
+                                                    : "red"
+                                                : "blue"
+                                      }
+                                    >
+                                      Confidence: {maxConfidence}
                                     </Tag>
                                   );
                                 }
-
                                 const confidenceDisplay = getConfidenceDisplay(fieldItem);
                                 if (!confidenceDisplay) return null;
 
@@ -853,21 +904,27 @@ const DashboardMortgage = () => {
         footer={null}
       >
         <Upload.Dragger
-          accept=".pdf"
+          accept=".pdf,.tif,.tiff"
           multiple={false}
           maxCount={1}
           fileList={fileList}
           beforeUpload={(file) => {
-            // Block if one file already exists
             if (fileList.length >= 1) {
               message.error("Multiple files can't be uploaded");
               return Upload.LIST_IGNORE;
             }
 
-            // Allow only PDF
-            const isPDF = file.type === "application/pdf";
-            if (!isPDF) {
-              message.error("Only PDF files are allowed");
+            const fileName = file.name.toLowerCase();
+
+            const isValid =
+              file.type === "application/pdf" ||
+              file.type === "image/tiff" ||
+              fileName.endsWith(".pdf") ||
+              fileName.endsWith(".tif") ||
+              fileName.endsWith(".tiff");
+
+            if (!isValid) {
+              message.error("Only PDF, TIF, TIFF files are allowed");
               return Upload.LIST_IGNORE;
             }
 
@@ -913,7 +970,7 @@ const DashboardMortgage = () => {
           <p className="ant-upload-drag-icon">
             <UploadOutlined />
           </p>
-          <p>Click or drag PDF file to upload</p>
+          <p>Click or drag PDF / TIF / TIFF file to upload</p>
         </Upload.Dragger>
       </Modal>
 

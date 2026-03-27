@@ -505,7 +505,7 @@ const BatchDashboard = () => {
                         icon={<UploadOutlined />}
                         onClick={() => setIsModalOpen(true)}
                     >
-                        Upload Batch PDFs
+                     Upload Batch PDF / TIF / TIFF 
                     </Button>
                 </Col>
             </Row>
@@ -606,16 +606,32 @@ const BatchDashboard = () => {
                 confirmLoading={loading}
             >
                 <Upload.Dragger
-                    accept=".pdf"
+                    accept=".pdf,.tif,.tiff"
                     multiple
                     fileList={fileList}
-                    beforeUpload={() => false}
+                    beforeUpload={(file) => {
+                        const fileName = file.name.toLowerCase();
+
+                        const isValid =
+                            file.type === "application/pdf" ||
+                            file.type === "image/tiff" ||
+                            fileName.endsWith(".pdf") ||
+                            fileName.endsWith(".tif") ||
+                            fileName.endsWith(".tiff");
+
+                        if (!isValid) {
+                            message.error("Only PDF, TIF, TIFF files are allowed");
+                            return Upload.LIST_IGNORE;
+                        }
+
+                        return false; // prevent auto upload (keep your existing behavior)
+                    }}
                     onChange={({ fileList }) => setFileList(fileList)}
                 >
                     <p className="ant-upload-drag-icon">
                         <UploadOutlined />
                     </p>
-                    <p>Click or drag multiple PDF files to upload</p>
+                   <p>Click or drag PDF / TIF / TIFF files to upload</p>
                 </Upload.Dragger>
             </Modal>
 

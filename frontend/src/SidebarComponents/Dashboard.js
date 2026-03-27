@@ -614,21 +614,32 @@ const Dashboard = () => {
         footer={null}
       >
         <Upload.Dragger
-          accept=".pdf"
+          accept=".pdf,.tif,.tiff"
           multiple={false}
           maxCount={1}
           fileList={fileList}
           beforeUpload={(file) => {
-            // Block if one file already exists
             if (fileList.length >= 1) {
               message.error("Multiple files can't be uploaded");
               return Upload.LIST_IGNORE;
             }
 
-            // Allow only PDF
-            const isPDF = file.type === "application/pdf";
-            if (!isPDF) {
-              message.error("Only PDF files are allowed");
+            const allowedTypes = [
+              "application/pdf",
+              "image/tiff",
+              "image/tif", // some browsers use this
+            ];
+
+            const fileName = file.name.toLowerCase();
+
+            const isValidType =
+              allowedTypes.includes(file.type) ||
+              fileName.endsWith(".pdf") ||
+              fileName.endsWith(".tif") ||
+              fileName.endsWith(".tiff");
+
+            if (!isValidType) {
+              message.error("Only PDF, TIF, TIFF files are allowed");
               return Upload.LIST_IGNORE;
             }
 
@@ -674,7 +685,7 @@ const Dashboard = () => {
           <p className="ant-upload-drag-icon">
             <UploadOutlined />
           </p>
-          <p>Click or drag PDF file to upload</p>
+          <p>Click or drag PDF / TIF / TIFF file to upload</p>
         </Upload.Dragger>
       </Modal>
 
