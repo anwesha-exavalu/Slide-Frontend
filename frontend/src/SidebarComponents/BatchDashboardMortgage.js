@@ -37,8 +37,10 @@ const specialMergeFields = [
     "Address of Mortgagee Company",
 ];
 const MAX_BATCH_FILES = 10;
-const MAX_FILE_SIZE_MB = 2;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const MAX_PDF_FILE_SIZE_MB = 2;
+const MAX_TIFF_FILE_SIZE_MB = 1;
+const MAX_PDF_FILE_SIZE_BYTES = MAX_PDF_FILE_SIZE_MB * 1024 * 1024;
+const MAX_TIFF_FILE_SIZE_BYTES = MAX_TIFF_FILE_SIZE_MB * 1024 * 1024;
 
 const MyTableComponent = ({ columns, dataSource, loading, selectedKey }) => {
     const { theme } = useMetaData();
@@ -392,13 +394,30 @@ const BatchDashboardMortgage = () => {
             return;
         }
 
-        const hasOversizedFile = fileList.some((file) => {
+        const oversizedFile = fileList.find((file) => {
             const fileSize = file?.originFileObj?.size ?? file?.size ?? 0;
-            return fileSize > MAX_FILE_SIZE_BYTES;
+            const fileName = (file?.name || "").toLowerCase();
+            const isTiffFile =
+                file?.type === "image/tiff" ||
+                fileName.endsWith(".tif") ||
+                fileName.endsWith(".tiff");
+            const maxAllowedSize = isTiffFile
+                ? MAX_TIFF_FILE_SIZE_BYTES
+                : MAX_PDF_FILE_SIZE_BYTES;
+            return fileSize > maxAllowedSize;
         });
 
-        if (hasOversizedFile) {
-            message.error(`Each file must be ${MAX_FILE_SIZE_MB} MB or smaller`);
+        if (oversizedFile) {
+            const fileName = (oversizedFile?.name || "").toLowerCase();
+            const isTiffFile =
+                oversizedFile?.type === "image/tiff" ||
+                fileName.endsWith(".tif") ||
+                fileName.endsWith(".tiff");
+            const typeLabel = isTiffFile ? "TIF/TIFF" : "PDF";
+            const maxSizeLabel = isTiffFile
+                ? MAX_TIFF_FILE_SIZE_MB
+                : MAX_PDF_FILE_SIZE_MB;
+            message.error(`${typeLabel} files must be ${maxSizeLabel} MB or smaller`);
             return;
         }
 
@@ -844,9 +863,21 @@ const BatchDashboardMortgage = () => {
                             return Upload.LIST_IGNORE;
                         }
 
-                        if (file.size > MAX_FILE_SIZE_BYTES) {
+                        const isTiffFile =
+                            file.type === "image/tiff" ||
+                            fileName.endsWith(".tif") ||
+                            fileName.endsWith(".tiff");
+                        const maxAllowedSize = isTiffFile
+                            ? MAX_TIFF_FILE_SIZE_BYTES
+                            : MAX_PDF_FILE_SIZE_BYTES;
+                        const maxAllowedSizeMb = isTiffFile
+                            ? MAX_TIFF_FILE_SIZE_MB
+                            : MAX_PDF_FILE_SIZE_MB;
+                        const typeLabel = isTiffFile ? "TIF/TIFF" : "PDF";
+
+                        if (file.size > maxAllowedSize) {
                             message.error(
-                                `${file.name} is larger than ${MAX_FILE_SIZE_MB} MB`
+                                `${file.name} exceeds ${maxAllowedSizeMb} MB limit for ${typeLabel} files`
                             );
                             return Upload.LIST_IGNORE;
                         }
@@ -865,7 +896,15 @@ const BatchDashboardMortgage = () => {
                         );
                         const sizeValidatedFileList = limitedFileList.filter((file) => {
                             const fileSize = file?.originFileObj?.size ?? file?.size ?? 0;
-                            return fileSize <= MAX_FILE_SIZE_BYTES;
+                            const fileName = (file?.name || "").toLowerCase();
+                            const isTiffFile =
+                                file?.type === "image/tiff" ||
+                                fileName.endsWith(".tif") ||
+                                fileName.endsWith(".tiff");
+                            const maxAllowedSize = isTiffFile
+                                ? MAX_TIFF_FILE_SIZE_BYTES
+                                : MAX_PDF_FILE_SIZE_BYTES;
+                            return fileSize <= maxAllowedSize;
                         });
                         setFileList(sizeValidatedFileList);
                     }}
@@ -875,7 +914,8 @@ const BatchDashboardMortgage = () => {
                     </p>
                     <p>
                         Click or drag PDF / TIF / TIFF files to upload (max{" "}
-                        {MAX_BATCH_FILES}, {MAX_FILE_SIZE_MB} MB each)
+                        {MAX_BATCH_FILES}, PDF {MAX_PDF_FILE_SIZE_MB} MB, TIF/TIFF{" "}
+                        {MAX_TIFF_FILE_SIZE_MB} MB)
                     </p>
                 </Upload.Dragger>
             </Modal>
