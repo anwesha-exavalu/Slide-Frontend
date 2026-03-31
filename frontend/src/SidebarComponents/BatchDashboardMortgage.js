@@ -37,6 +37,8 @@ const specialMergeFields = [
     "Address of Mortgagee Company",
 ];
 const MAX_BATCH_FILES = 10;
+const MAX_FILE_SIZE_MB = 2;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const MyTableComponent = ({ columns, dataSource, loading, selectedKey }) => {
     const { theme } = useMetaData();
@@ -387,6 +389,16 @@ const BatchDashboardMortgage = () => {
 
         if (fileList.length > MAX_BATCH_FILES) {
             message.error(`You can upload up to ${MAX_BATCH_FILES} files at a time`);
+            return;
+        }
+
+        const hasOversizedFile = fileList.some((file) => {
+            const fileSize = file?.originFileObj?.size ?? file?.size ?? 0;
+            return fileSize > MAX_FILE_SIZE_BYTES;
+        });
+
+        if (hasOversizedFile) {
+            message.error(`Each file must be ${MAX_FILE_SIZE_MB} MB or smaller`);
             return;
         }
 
@@ -832,6 +844,13 @@ const BatchDashboardMortgage = () => {
                             return Upload.LIST_IGNORE;
                         }
 
+                        if (file.size > MAX_FILE_SIZE_BYTES) {
+                            message.error(
+                                `${file.name} is larger than ${MAX_FILE_SIZE_MB} MB`
+                            );
+                            return Upload.LIST_IGNORE;
+                        }
+
                         return false; // prevent auto upload (keep your existing behavior)
                     }}
                     onChange={({ fileList: updatedFileList }) => {
@@ -840,7 +859,15 @@ const BatchDashboardMortgage = () => {
                                 `You can upload up to ${MAX_BATCH_FILES} files at a time`
                             );
                         }
-                        setFileList(updatedFileList.slice(0, MAX_BATCH_FILES));
+                        const limitedFileList = updatedFileList.slice(
+                            0,
+                            MAX_BATCH_FILES
+                        );
+                        const sizeValidatedFileList = limitedFileList.filter((file) => {
+                            const fileSize = file?.originFileObj?.size ?? file?.size ?? 0;
+                            return fileSize <= MAX_FILE_SIZE_BYTES;
+                        });
+                        setFileList(sizeValidatedFileList);
                     }}
                 >
                     <p className="ant-upload-drag-icon">
@@ -848,7 +875,7 @@ const BatchDashboardMortgage = () => {
                     </p>
                     <p>
                         Click or drag PDF / TIF / TIFF files to upload (max{" "}
-                        {MAX_BATCH_FILES})
+                        {MAX_BATCH_FILES}, {MAX_FILE_SIZE_MB} MB each)
                     </p>
                 </Upload.Dragger>
             </Modal>
