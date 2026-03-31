@@ -36,6 +36,7 @@ const specialMergeFields = [
     "Current Mortgagee Company",
     "Address of Mortgagee Company",
 ];
+const MAX_BATCH_FILES = 10;
 
 const MyTableComponent = ({ columns, dataSource, loading, selectedKey }) => {
     const { theme } = useMetaData();
@@ -379,6 +380,16 @@ const BatchDashboardMortgage = () => {
     }, [selectedKey]);
 
     const handleBatchUpload = async () => {
+        if (!fileList.length) {
+            message.warning("Please select at least one file");
+            return;
+        }
+
+        if (fileList.length > MAX_BATCH_FILES) {
+            message.error(`You can upload up to ${MAX_BATCH_FILES} files at a time`);
+            return;
+        }
+
         try {
             setLoading(true);
             const BASE_URL = process.env.REACT_APP_AI_EXTRACT;
@@ -804,6 +815,7 @@ const BatchDashboardMortgage = () => {
                 <Upload.Dragger
                     accept=".pdf,.tif,.tiff"
                     multiple
+                    maxCount={MAX_BATCH_FILES}
                     fileList={fileList}
                     beforeUpload={(file) => {
                         const fileName = file.name.toLowerCase();
@@ -822,14 +834,22 @@ const BatchDashboardMortgage = () => {
 
                         return false; // prevent auto upload (keep your existing behavior)
                     }}
-                    onChange={({ fileList: updatedFileList }) =>
-                        setFileList(updatedFileList)
-                    }
+                    onChange={({ fileList: updatedFileList }) => {
+                        if (updatedFileList.length > MAX_BATCH_FILES) {
+                            message.error(
+                                `You can upload up to ${MAX_BATCH_FILES} files at a time`
+                            );
+                        }
+                        setFileList(updatedFileList.slice(0, MAX_BATCH_FILES));
+                    }}
                 >
                     <p className="ant-upload-drag-icon">
                         <UploadOutlined />
                     </p>
-                    <p>Click or drag PDF / TIF / TIFF files to upload</p>
+                    <p>
+                        Click or drag PDF / TIF / TIFF files to upload (max{" "}
+                        {MAX_BATCH_FILES})
+                    </p>
                 </Upload.Dragger>
             </Modal>
 
