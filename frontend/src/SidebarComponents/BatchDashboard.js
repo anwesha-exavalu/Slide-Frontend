@@ -142,7 +142,7 @@ const BatchDashboard = () => {
             const maxSizeLabel = isTiffFile
                 ? MAX_TIFF_FILE_SIZE_KB
                 : MAX_PDF_FILE_SIZE_MB;
-            message.error(`${typeLabel} files must be ${maxSizeLabel} ${isTiffFile ? 'KB' : 'MB'} or smaller`);
+            message.error(`${typeLabel} files must be ${maxSizeLabel} ${isTiffFile ? 'KB' : 'MB'} or smaller.  Please upload it in individual process.`);
             return;
         }
 
@@ -717,7 +717,7 @@ const BatchDashboard = () => {
 
                         if (file.size > maxAllowedSize) {
                             message.error(
-                                `${file.name} exceeds ${maxAllowedSizeMb} ${isTiffFile ? 'KB' : 'MB'} limit for ${typeLabel} files`
+                                `${file.name} exceeds ${maxAllowedSizeMb} ${isTiffFile ? 'KB' : 'MB'} limit for ${typeLabel} files.  Please upload it in individual process.`
                             );
                             return Upload.LIST_IGNORE;
                         }
