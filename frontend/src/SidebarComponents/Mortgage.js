@@ -80,10 +80,6 @@ const scrollCellStyle = {
   whiteSpace: "normal",
   wordBreak: "break-word",
 };
-const MAX_PDF_FILE_SIZE_MB = 3;
-const MAX_TIFF_FILE_SIZE_KB = 300;
-const MAX_PDF_FILE_SIZE_BYTES = MAX_PDF_FILE_SIZE_MB * 1024 * 1024;
-const MAX_TIFF_FILE_SIZE_BYTES = MAX_TIFF_FILE_SIZE_KB * 1024;
 
 const DashboardMortgage = () => {
   const [apiData, setApiData] = useState([]);
@@ -933,26 +929,6 @@ const DashboardMortgage = () => {
               return Upload.LIST_IGNORE;
             }
 
-            const isTiffFile =
-              file.type === "image/tiff" ||
-              file.type === "image/tif" ||
-              fileName.endsWith(".tif") ||
-              fileName.endsWith(".tiff");
-            const maxAllowedSize = isTiffFile
-              ? MAX_TIFF_FILE_SIZE_BYTES
-              : MAX_PDF_FILE_SIZE_BYTES;
-            const maxAllowedSizeLabel = isTiffFile
-              ? `${MAX_TIFF_FILE_SIZE_KB} KB`
-              : `${MAX_PDF_FILE_SIZE_MB} MB`;
-            const typeLabel = isTiffFile ? "TIF/TIFF" : "PDF";
-
-            if (file.size > maxAllowedSize) {
-              message.error(
-                `${file.name} exceeds ${maxAllowedSizeLabel} limit for ${typeLabel} files`
-              );
-              return Upload.LIST_IGNORE;
-            }
-
             return true;
           }}
           onChange={({ fileList }) => {
@@ -995,9 +971,7 @@ const DashboardMortgage = () => {
           <p className="ant-upload-drag-icon">
             <UploadOutlined />
           </p>
-          <p>
-            Click or drag PDF / TIF / TIFF file to upload (PDF {MAX_PDF_FILE_SIZE_MB} MB, TIF/TIFF {MAX_TIFF_FILE_SIZE_KB} KB)
-          </p>
+          <p>Click or drag PDF / TIF / TIFF file to upload</p>
         </Upload.Dragger>
       </Modal>
 
