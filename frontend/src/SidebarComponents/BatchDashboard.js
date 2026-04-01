@@ -27,9 +27,9 @@ import XLSX from "sheetjs-style";
 
 const MAX_BATCH_FILES = 10;
 const MAX_PDF_FILE_SIZE_MB = 3;
-const MAX_TIFF_FILE_SIZE_MB = 1;
+const MAX_TIFF_FILE_SIZE_KB = 300;
 const MAX_PDF_FILE_SIZE_BYTES = MAX_PDF_FILE_SIZE_MB * 1024 * 1024;
-const MAX_TIFF_FILE_SIZE_BYTES = MAX_TIFF_FILE_SIZE_MB * 1024 * 1024;
+const MAX_TIFF_FILE_SIZE_BYTES = MAX_TIFF_FILE_SIZE_KB * 1024;
 
 const scrollCellStyle = {
     maxHeight: 55,
@@ -140,9 +140,9 @@ const BatchDashboard = () => {
                 fileName.endsWith(".tiff");
             const typeLabel = isTiffFile ? "TIF/TIFF" : "PDF";
             const maxSizeLabel = isTiffFile
-                ? MAX_TIFF_FILE_SIZE_MB
+                ? MAX_TIFF_FILE_SIZE_KB
                 : MAX_PDF_FILE_SIZE_MB;
-            message.error(`${typeLabel} files must be ${maxSizeLabel} MB or smaller`);
+            message.error(`${typeLabel} files must be ${maxSizeLabel} ${isTiffFile ? 'KB' : 'MB'} or smaller`);
             return;
         }
 
@@ -583,7 +583,7 @@ const BatchDashboard = () => {
                         icon={<UploadOutlined />}
                         onClick={() => setIsModalOpen(true)}
                     >
-                     Upload Batch PDF / TIF / TIFF 
+                        Upload Batch PDF / TIF / TIFF
                     </Button>
                 </Col>
             </Row>
@@ -711,13 +711,13 @@ const BatchDashboard = () => {
                             ? MAX_TIFF_FILE_SIZE_BYTES
                             : MAX_PDF_FILE_SIZE_BYTES;
                         const maxAllowedSizeMb = isTiffFile
-                            ? MAX_TIFF_FILE_SIZE_MB
+                            ? MAX_TIFF_FILE_SIZE_KB
                             : MAX_PDF_FILE_SIZE_MB;
                         const typeLabel = isTiffFile ? "TIF/TIFF" : "PDF";
 
                         if (file.size > maxAllowedSize) {
                             message.error(
-                                `${file.name} exceeds ${maxAllowedSizeMb} MB limit for ${typeLabel} files`
+                                `${file.name} exceeds ${maxAllowedSizeMb} ${isTiffFile ? 'KB' : 'MB'} limit for ${typeLabel} files`
                             );
                             return Upload.LIST_IGNORE;
                         }
@@ -753,9 +753,9 @@ const BatchDashboard = () => {
                         <UploadOutlined />
                     </p>
                     <p>
-                        Click or drag PDF / TIF / TIFF files to upload (max{" "}
-                        {MAX_BATCH_FILES}, PDF {MAX_PDF_FILE_SIZE_MB} MB, TIF/TIFF{" "}
-                        {MAX_TIFF_FILE_SIZE_MB} MB)
+                        Click or drag PDF / TIF / TIFF files to upload (upto {" "} files
+                        {MAX_BATCH_FILES}, Max file size: PDF {MAX_PDF_FILE_SIZE_MB} MB, TIF/TIFF{" "}
+                        {MAX_TIFF_FILE_SIZE_KB} KB)
                     </p>
                 </Upload.Dragger>
             </Modal>
