@@ -37,7 +37,7 @@ const specialMergeFields = [
     "Address of Mortgagee Company",
 ];
 const MAX_BATCH_FILES = 10;
-const MAX_PDF_FILE_SIZE_MB = 2;
+const MAX_PDF_FILE_SIZE_MB = 3;
 const MAX_TIFF_FILE_SIZE_MB = 1;
 const MAX_PDF_FILE_SIZE_BYTES = MAX_PDF_FILE_SIZE_MB * 1024 * 1024;
 const MAX_TIFF_FILE_SIZE_BYTES = MAX_TIFF_FILE_SIZE_MB * 1024 * 1024;
@@ -237,6 +237,14 @@ const getMaxRowsForFields = (fields, fieldNames) => {
     );
 };
 
+const getPageNumberForRow = (fields, fieldNames, rowIndex) =>
+    firstDefined(
+        ...fieldNames.map((field) => {
+            const valueArray = Array.isArray(fields[field]) ? fields[field] : [];
+            return valueArray[rowIndex]?.page;
+        })
+    ) ?? "";
+
 const buildMortgagePreviewRows = (json, documentName) => {
     if (!json) return [];
 
@@ -253,6 +261,7 @@ const buildMortgagePreviewRows = (json, documentName) => {
             const valueArray = Array.isArray(fields[field]) ? fields[field] : [];
             row[field] = valueArray[r]?.value ?? "";
         });
+        row["Page Number"] = getPageNumberForRow(fields, fieldNames, r);
 
         rows.push(row);
     }
@@ -457,7 +466,7 @@ const BatchDashboardMortgage = () => {
         const ws = {};
         const fields = normalizeFields(json.fields || {});
         const fieldNames = Object.keys(fields);
-        const headers = ["Document Name", ...fieldNames];
+        const headers = ["Document Name", ...fieldNames, "Page Number"];
         const maxRows = getMaxRowsForFields(fields, fieldNames);
         const merges = [];
 
@@ -483,6 +492,11 @@ const BatchDashboardMortgage = () => {
                     s: cellStyle(),
                 };
             });
+
+            ws[XLSX.utils.encode_cell({ r: rowIndex, c: fieldNames.length + 1 })] = {
+                v: getPageNumberForRow(fields, fieldNames, r),
+                s: cellStyle(),
+            };
         }
 
         if (maxRows > 1) {
@@ -535,7 +549,7 @@ const BatchDashboardMortgage = () => {
                 batchData.flatMap((item) => Object.keys(item?.data?.fields || {}))
             )
         );
-        const headers = ["Document Name", ...allFieldNames];
+        const headers = ["Document Name", ...allFieldNames, "Page Number"];
         let rowIndex = 0;
 
         headers.forEach((header, colIndex) => {
@@ -569,6 +583,11 @@ const BatchDashboardMortgage = () => {
                         s: cellStyle(),
                     };
                 });
+
+                ws[XLSX.utils.encode_cell({ r: rowIndex, c: allFieldNames.length + 1 })] = {
+                    v: getPageNumberForRow(fields, allFieldNames, r),
+                    s: cellStyle(),
+                };
 
                 rowIndex += 1;
             }
@@ -1016,6 +1035,18 @@ const BatchDashboardMortgage = () => {
                                 },
                             })
                         ),
+                        {
+                            title: "Page Number",
+                            dataIndex: "Page Number",
+                            width: 110,
+                            onHeaderCell: () => ({
+                                style: { backgroundColor: "#217346", color: "#fff" },
+                            }),
+                            render: (page) =>
+                                page !== "" && page !== undefined && page !== null
+                                    ? page
+                                    : "—",
+                        },
                     ]}
                     dataSource={buildMortgagePreviewRows(
                         selectedExcelData?.json,

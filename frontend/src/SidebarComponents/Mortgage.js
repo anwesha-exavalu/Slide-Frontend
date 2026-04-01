@@ -274,6 +274,23 @@ const DashboardMortgage = () => {
       ])
     );
 
+  const getMaxRowsForFields = (fields, fieldNames) => {
+    if (!fieldNames.length) return 1;
+    return Math.max(
+      ...fieldNames.map((field) =>
+        Array.isArray(fields[field]) ? fields[field].length : 1
+      )
+    );
+  };
+
+  const getPageNumberForRow = (fields, fieldNames, rowIndex) =>
+    firstDefined(
+      ...fieldNames.map((field) => {
+        const valueArray = Array.isArray(fields[field]) ? fields[field] : [];
+        return valueArray[rowIndex]?.page;
+      })
+    ) ?? "";
+
   const buildExcelRows = (json) => {
     if (!json) return [];
     const fields = normalizeFields(json.fields || {});
@@ -326,15 +343,9 @@ const DashboardMortgage = () => {
 
     const fieldNames = Object.keys(fields);
 
-    const maxRows = fieldNames.length
-      ? Math.max(
-        ...fieldNames.map((field) =>
-          Array.isArray(fields[field]) ? fields[field].length : 1
-        )
-      )
-      : 1;
+    const maxRows = getMaxRowsForFields(fields, fieldNames);
 
-    const headers = ["Document Name", ...fieldNames];
+    const headers = ["Document Name", ...fieldNames, "Page Number"];
 
     // Header Row
     headers.forEach((header, colIndex) => {
@@ -368,6 +379,11 @@ const DashboardMortgage = () => {
           s: cellStyle(),
         };
       });
+
+      ws[XLSX.utils.encode_cell({ r: rowIndex, c: fieldNames.length + 1 })] = {
+        v: getPageNumberForRow(fields, fieldNames, r),
+        s: cellStyle(),
+      };
     }
 
     // Merge Document Name vertically
@@ -466,13 +482,7 @@ const DashboardMortgage = () => {
     const fields = normalizeFields(json.fields || {});
     const fieldNames = Object.keys(fields);
 
-    const maxRows = fieldNames.length
-      ? Math.max(
-        ...fieldNames.map((field) =>
-          Array.isArray(fields[field]) ? fields[field].length : 1
-        )
-      )
-      : 1;
+    const maxRows = getMaxRowsForFields(fields, fieldNames);
 
     const rows = [];
 
@@ -488,6 +498,7 @@ const DashboardMortgage = () => {
 
         row[field] = valueArray[r]?.value ?? "";
       });
+      row["Page Number"] = getPageNumberForRow(fields, fieldNames, r);
 
       rows.push(row);
     }
@@ -1089,6 +1100,16 @@ const DashboardMortgage = () => {
                 };
               },
             })),
+            {
+              title: "Page Number",
+              dataIndex: "Page Number",
+              width: 110,
+              onHeaderCell: () => ({
+                style: { backgroundColor: "#217346", color: "#fff" },
+              }),
+              render: (page) =>
+                page !== "" && page !== undefined && page !== null ? page : "—",
+            },
           ]}
           dataSource={buildMortgagePreviewRows(
             selectedExcelData?.json,

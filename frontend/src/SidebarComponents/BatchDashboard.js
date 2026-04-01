@@ -26,7 +26,7 @@ import useMetaData from "../context/metaData";
 import XLSX from "sheetjs-style";
 
 const MAX_BATCH_FILES = 10;
-const MAX_PDF_FILE_SIZE_MB = 2;
+const MAX_PDF_FILE_SIZE_MB = 3;
 const MAX_TIFF_FILE_SIZE_MB = 1;
 const MAX_PDF_FILE_SIZE_BYTES = MAX_PDF_FILE_SIZE_MB * 1024 * 1024;
 const MAX_TIFF_FILE_SIZE_BYTES = MAX_TIFF_FILE_SIZE_MB * 1024 * 1024;
@@ -185,13 +185,24 @@ const BatchDashboard = () => {
         const rows = [];
         const fields = json.fields || {};
 
+        const getPreviewPageNumber = (data) => {
+            const rawPage = data?.page;
+            if (Array.isArray(rawPage)) {
+                const pages = rawPage
+                    .filter((page) => page !== undefined && page !== null && page !== "")
+                    .map((page) => String(page));
+                return pages.length ? pages.join(", ") : "—";
+            }
+            return rawPage ?? "—";
+        };
+
         Object.entries(fields).forEach(([fieldName, data]) => {
             const rawValue = data?.value;
             const confidence =
                 data?.confidence_score != null
                     ? `${Math.round(data.confidence_score * 100)}%`
                     : "—";
-            const page = data?.page ?? "—";
+            const page = getPreviewPageNumber(data);
             const LLMConfidence = data?.llm_confidence_score != null
                 ? `${Math.round(data.llm_confidence_score * 100)}%`
                 : "—";
@@ -225,6 +236,14 @@ const BatchDashboard = () => {
         const wb = XLSX.utils.book_new();
         const ws = {};
 
+        const getRowPageNumber = (data, valueIndex) => {
+            const rawPage = data?.page;
+            if (Array.isArray(rawPage)) {
+                return rawPage[valueIndex] ?? rawPage[0] ?? "—";
+            }
+            return rawPage ?? "—";
+        };
+
         const fields = json.fields || {};
         const fieldNames = Object.keys(fields);
 
@@ -236,7 +255,7 @@ const BatchDashboard = () => {
             )
         );
 
-        const headers = ["Document Name", "Field", "Value"];
+        const headers = ["Document Name", "Field", "Value", "Page Number"];
 
         // Header row
         headers.forEach((header, colIndex) => {
@@ -273,6 +292,11 @@ const BatchDashboard = () => {
                     s: cellStyle(),
                 };
 
+                ws[XLSX.utils.encode_cell({ r: rowIndex, c: 3 })] = {
+                    v: getRowPageNumber(data, index),
+                    s: cellStyle(),
+                };
+
                 rowIndex++;
             });
 
@@ -296,7 +320,7 @@ const BatchDashboard = () => {
 
         ws["!ref"] = XLSX.utils.encode_range({
             s: { r: 0, c: 0 },
-            e: { r: rowIndex - 1, c: 2 },
+            e: { r: rowIndex - 1, c: 3 },
         });
 
         ws["!merges"] = merges;
@@ -305,6 +329,7 @@ const BatchDashboard = () => {
             { wch: 28 },
             { wch: 30 },
             { wch: 70 },
+            { wch: 14 },
         ];
 
         XLSX.utils.book_append_sheet(wb, ws, "Extracted Data");
@@ -319,7 +344,7 @@ const BatchDashboard = () => {
 
         const wb = XLSX.utils.book_new();
         const ws = {};
-        const headers = ["Document Name", "Field", "Value"];
+        const headers = ["Document Name", "Field", "Value", "Page Number"];
         const merges = [];
         let rowIndex = 0;
 
@@ -345,6 +370,9 @@ const BatchDashboard = () => {
                 const values = Array.isArray(data?.value)
                     ? data.value
                     : [data?.value];
+                const pages = Array.isArray(data?.page)
+                    ? data.page
+                    : [data?.page];
                 const fieldStartRow = rowIndex;
 
                 values.forEach((val, valueIndex) => {
@@ -360,6 +388,11 @@ const BatchDashboard = () => {
 
                     ws[XLSX.utils.encode_cell({ r: rowIndex, c: 2 })] = {
                         v: val ?? "",
+                        s: cellStyle(),
+                    };
+
+                    ws[XLSX.utils.encode_cell({ r: rowIndex, c: 3 })] = {
+                        v: pages[valueIndex] ?? pages[0] ?? "—",
                         s: cellStyle(),
                     };
 
@@ -390,7 +423,7 @@ const BatchDashboard = () => {
 
         ws["!ref"] = XLSX.utils.encode_range({
             s: { r: 0, c: 0 },
-            e: { r: Math.max(rowIndex - 1, 0), c: 2 },
+            e: { r: Math.max(rowIndex - 1, 0), c: 3 },
         });
 
         ws["!merges"] = merges;
@@ -398,6 +431,7 @@ const BatchDashboard = () => {
             { wch: 28 },
             { wch: 30 },
             { wch: 70 },
+            { wch: 14 },
         ];
 
         XLSX.utils.book_append_sheet(wb, ws, "Consolidated Data");
@@ -758,6 +792,14 @@ const BatchDashboard = () => {
                         {
                             title: "Value", dataIndex: "Value", key: "Value",
                             render: (val) => <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{val}</span>,
+                            onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
+                        },
+                        {
+                            title: "Page Number",
+                            dataIndex: "Page",
+                            key: "page",
+                            width: 120,
+                            render: (val) => (val !== undefined && val !== null && val !== "" ? val : "—"),
                             onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
                         },
                         // {

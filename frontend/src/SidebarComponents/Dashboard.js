@@ -48,7 +48,7 @@ const MyTableComponent = ({
         dataSource={dataSource}
         loading={loading}
         pagination={{ pageSize: 5 }}
-        tableLayout="fixed"              // ✅ ADD THIS
+        tableLayout="fixed"            
         scroll={{ x: 1200 }}
         onRow={(record) => ({
           style:
@@ -188,6 +188,14 @@ const Dashboard = () => {
     const wb = XLSX.utils.book_new();
     const ws = {};
 
+    const getRowPageNumber = (data, valueIndex) => {
+      const rawPage = data?.page;
+      if (Array.isArray(rawPage)) {
+        return rawPage[valueIndex] ?? rawPage[0] ?? "—";
+      }
+      return rawPage ?? "—";
+    };
+
     const fields = json.fields || {};
     const fieldNames = Object.keys(fields);
 
@@ -199,7 +207,7 @@ const Dashboard = () => {
       )
     );
 
-    const headers = ["Document Name", "Field", "Value"];
+    const headers = ["Document Name", "Field", "Value", "Page Number"];
 
     // Header row
     headers.forEach((header, colIndex) => {
@@ -236,6 +244,11 @@ const Dashboard = () => {
           s: cellStyle(),
         };
 
+        ws[XLSX.utils.encode_cell({ r: rowIndex, c: 3 })] = {
+          v: getRowPageNumber(data, index),
+          s: cellStyle(),
+        };
+
         rowIndex++;
       });
 
@@ -259,7 +272,7 @@ const Dashboard = () => {
 
     ws["!ref"] = XLSX.utils.encode_range({
       s: { r: 0, c: 0 },
-      e: { r: rowIndex - 1, c: 2 },
+      e: { r: rowIndex - 1, c: 3 },
     });
 
     ws["!merges"] = merges;
@@ -268,6 +281,7 @@ const Dashboard = () => {
       { wch: 28 },
       { wch: 30 },
       { wch: 70 },
+      { wch: 14 },
     ];
 
     XLSX.utils.book_append_sheet(wb, ws, "Extracted Data");
@@ -721,6 +735,22 @@ const Dashboard = () => {
             {
               title: "Value", dataIndex: "Value", key: "Value",
               render: (val) => <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{val}</span>,
+              onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
+            },
+            {
+              title: "Page Number",
+              dataIndex: "Page",
+              key: "page",
+              width: 120,
+              render: (val) => {
+                if (Array.isArray(val)) {
+                  const pages = val
+                    .filter((page) => page !== undefined && page !== null && page !== "")
+                    .map((page) => String(page));
+                  return pages.length ? pages.join(", ") : "—";
+                }
+                return val !== undefined && val !== null && val !== "" ? val : "—";
+              },
               onHeaderCell: () => ({ style: { backgroundColor: "#217346", color: "#fff" } })
             },
             // {
